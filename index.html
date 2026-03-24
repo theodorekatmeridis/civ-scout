@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Civilisations - Jeu Scout</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#1a1a2e;color:#eee;min-height:100vh;font-size:14px}
+#screen-civ{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+#screen-game{display:none;padding:10px}
+.civ-title{font-size:26px;font-weight:bold;margin-bottom:6px;color:#fff;text-align:center}
+.civ-sub{font-size:13px;color:#aaa;margin-bottom:24px;text-align:center}
+.civ-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;max-width:780px;width:100%}
+.civ-card{padding:20px 12px;border:1px solid #444;border-radius:12px;cursor:pointer;text-align:center;background:#16213e;transition:all .15s}
+.civ-card:hover{background:#0f3460;border-color:#e94560;transform:translateY(-2px)}
+.civ-card .ico{font-size:36px;margin-bottom:8px}
+.civ-card .nm{font-size:15px;font-weight:bold;color:#fff}
+.civ-card .saved{font-size:10px;color:#4ade80;margin-top:4px}
+.header{display:flex;align-items:center;gap:8px;background:#16213e;border-radius:10px;padding:10px 14px;margin-bottom:10px;flex-wrap:wrap}
+.header-btns{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap}
+.btn-sm{padding:5px 11px;font-size:11px;cursor:pointer;border:1px solid #444;border-radius:6px;background:#1a1a2e;color:#ccc}
+.btn-sm:hover{background:#333}
+.btn-save{background:#065f46;color:#6ee7b7;border-color:#059669}
+.btn-export{background:#1e3a5f;color:#93c5fd;border-color:#1d4ed8}
+.btn-import{background:#3b0764;color:#e879f9;border-color:#7e22ce}
+.btn-reset{color:#ef4444}
+.btn-reset2{background:#7f1d1d;color:#fca5a5;border-color:#ef4444;display:none}
+.layout{display:grid;grid-template-columns:195px 1fr 230px;gap:10px}
+.panel{background:#16213e;border:1px solid #2a2a3e;border-radius:10px;padding:12px}
+.ptitle{font-size:10px;font-weight:bold;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.res-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #2a2a3e;font-size:12px}
+.res-row:last-child{border-bottom:none}
+.res-rate{font-size:10px;color:#4ade80}
+.click-btn{width:100%;padding:14px;font-size:50px;border:1px solid #333;border-radius:12px;background:#0f3460;cursor:pointer;text-align:center;margin-bottom:8px;transition:transform .08s;display:block;line-height:1}
+.click-btn:active{transform:scale(0.92)}
+.tab-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.tab{padding:4px 9px;border:1px solid #333;border-radius:6px;font-size:11px;cursor:pointer;background:#1a1a2e;color:#888;white-space:nowrap}
+.tab:hover{background:#2a2a3e;color:#ccc}
+.tab.active{background:#e94560;color:#fff;border-color:#e94560}
+.bld{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid #2a2a3e;border-radius:8px;cursor:pointer;margin-bottom:5px;transition:background .1s}
+.bld:hover:not(.locked){background:#0f3460}
+.bld:active:not(.locked){transform:scale(0.98)}
+.bld.locked{opacity:.3;cursor:not-allowed}
+.bld-ico{font-size:18px;width:24px;text-align:center;flex-shrink:0;margin-top:2px}
+.bld-info{flex:1;min-width:0}
+.bld-name{font-size:12px;font-weight:bold;color:#fff;line-height:1.3}
+.bld-desc{font-size:11px;color:#999;margin-top:2px}
+.bld-cost{font-size:10px;color:#666;margin-top:3px}
+.bld-cnt{background:#1d4ed8;color:#93c5fd;border-radius:6px;padding:1px 7px;font-size:12px;font-weight:bold;flex-shrink:0;align-self:center;min-width:24px;text-align:center}
+.owned-row{display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid #1a1a2e;cursor:pointer}
+.owned-row:hover{color:#4ade80}
+.scroll{overflow-y:auto;max-height:500px}
+.notif{position:fixed;top:12px;right:12px;background:#065f46;color:#6ee7b7;border:1px solid #059669;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:bold;z-index:999;display:none;pointer-events:none}
+.save-info{font-size:10px;color:#4ade80;text-align:center;padding:3px;margin-top:4px}
+.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#16213e;border:1px solid #333;border-radius:12px;padding:20px;z-index:9999;width:90%;max-width:500px;display:none}
+.modal textarea{width:100%;height:100px;background:#0f0f1a;border:1px solid #333;border-radius:6px;padding:8px;font-size:11px;font-family:monospace;resize:none;margin-top:8px}
+.modal-btns{display:flex;gap:8px;margin-top:10px}
+.modal-btns button{flex:1;padding:8px;border-radius:6px;cursor:pointer;font-size:12px;border:1px solid #444}
+</style>
+</head>
+<body>
+
+<div id="screen-civ">
+  <div class="civ-title">&#127963; Civilisations &#127963;</div>
+  <div class="civ-sub">Jeu Scout &#8212; Chaque groupe choisit sa civilisation</div>
+  <div class="civ-grid" id="civ-grid"></div>
+  <div style="margin-top:20px;font-size:11px;color:#444;text-align:center">Progression sauvegard&#233;e automatiquement dans ce navigateur</div>
+</div>
+
+<div id="screen-game">
+  <div class="header">
+    <div id="hdr-icon" style="font-size:28px"></div>
+    <div>
+      <div id="hdr-name" style="font-size:17px;font-weight:bold;color:#fff"></div>
+      <div id="hdr-total" style="font-size:10px;color:#666"></div>
+    </div>
+    <div id="hdr-era" style="font-size:11px;margin-left:6px"></div>
+    <div class="header-btns">
+      <button class="btn-sm btn-save" onclick="saveGame()">&#128190; Sauvegarder</button>
+      <button class="btn-sm btn-export" onclick="openExport()">&#128229; Exporter</button>
+      <button class="btn-sm btn-import" onclick="openImport()">&#128228; Importer</button>
+      <button class="btn-sm btn-reset" id="btn-reset1" onclick="step1Reset()">Reset</button>
+      <button class="btn-sm btn-reset2" id="btn-reset2" onclick="step2Reset()">CONFIRMER ?</button>
+      <button class="btn-sm" onclick="changeCiv()">Changer</button>
+    </div>
+  </div>
+  <div id="save-info" class="save-info" style="display:none"></div>
+
+  <div class="layout">
+    <div class="panel">
+      <div class="ptitle">Ressources</div>
+      <div id="res-panel"></div>
+      <div style="border-top:1px solid #2a2a3e;margin-top:10px;padding-top:10px">
+        <div class="ptitle">B&#226;timents actifs</div>
+        <div id="owned-mini" class="scroll" style="max-height:200px"></div>
+      </div>
+    </div>
+    <div>
+      <button class="click-btn" id="main-click" onclick="mainClick()">&#127963;</button>
+      <div style="font-size:10px;color:#444;text-align:center;margin-bottom:8px">Clic &#8594; +Mat&#233;riaux &#8226; Clic sur b&#226;timent &#8594; production instantan&#233;e</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <button class="tab active" id="vshop" onclick="setView('shop')">March&#233;</button>
+        <button class="tab" id="vowned" onclick="setView('owned')">Mes b&#226;timents</button>
+      </div>
+      <div id="center-content" class="scroll" style="max-height:440px"></div>
+    </div>
+    <div class="panel scroll" style="max-height:560px">
+      <div class="ptitle">Production / seconde</div>
+      <div id="rates-panel"></div>
+      <div style="border-top:1px solid #2a2a3e;margin-top:12px;padding-top:10px">
+        <div class="ptitle">Progression</div>
+        <div id="progress-panel"></div>
+      </div>
+      <div style="border-top:1px solid #2a2a3e;margin-top:12px;padding-top:10px">
+        <div class="ptitle">Eres</div>
+        <div id="era-panel"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal" id="modal-export">
+  <div style="font-size:14px;font-weight:bold;color:#fff">Code de sauvegarde</div>
+  <div style="font-size:11px;color:#aaa;margin-top:4px">Copie ce code et envoie-le sur WhatsApp !</div>
+  <textarea id="export-code" readonly style="color:#4ade80"></textarea>
+  <div class="modal-btns">
+    <button onclick="copyCode()" style="background:#065f46;color:#6ee7b7;border-color:#059669">Copier le code</button>
+    <button onclick="closeModal('modal-export')" style="background:#1a1a2e;color:#aaa">Fermer</button>
+  </div>
+</div>
+
+<div class="modal" id="modal-import">
+  <div style="font-size:14px;font-weight:bold;color:#fff">Importer une sauvegarde</div>
+  <div style="font-size:11px;color:#aaa;margin-top:4px">Colle ici le code envoy&#233; par ton chef :</div>
+  <textarea id="import-code" style="color:#e879f9" placeholder="Colle le code ici..."></textarea>
+  <div class="modal-btns">
+    <button onclick="doImport()" style="background:#3b0764;color:#e879f9;border-color:#7e22ce">Importer</button>
+    <button onclick="closeModal('modal-import')" style="background:#1a1a2e;color:#aaa">Annuler</button>
+  </div>
+</div>
+
+<div id="notif" class="notif"></div>
+
+<script>
+var CIVS = {
+  grecs:   {name:"Grècs",    icon:"⛬"},
+  vikings: {name:"Vikings",       icon:"⚓"},
+  gaulois: {name:"Gaulois",       icon:"🪓"},
+  sam:     {name:"Samouraïs",icon:"⛩"},
+  ninjas:  {name:"Ninjas",        icon:"🌙"}
+};
+var RN = {g:"Guerriers",n:"Nourriture",m:"Matériaux",s:"Savoir",o:"Or",p:"Population"};
+var RC = {g:"#f87171",n:"#86efac",m:"#fdba74",s:"#c084fc",o:"#fbbf24",p:"#38bdf8"};
+var ERAS = [
+  {id:"e1",name:"Villages primitifs",   unlock:0,     color:"#14532d"},
+  {id:"e2",name:"Cités antiques",  unlock:500,   color:"#1e3a5f"},
+  {id:"e3",name:"Empires en guerre",    unlock:5000,  color:"#4a044e"},
+  {id:"e4",name:"Légendes éternelles",unlock:50000,color:"#431407"}
+];
+var CATS = [
+  {id:"agri",    label:"Agriculture",   era:1},
+  {id:"mil",     label:"Armée",    era:1},
+  {id:"armes",   label:"Armes",         era:2},
+  {id:"marine",  label:"Marine",        era:2},
+  {id:"eco",     label:"Commerce",      era:2},
+  {id:"civil",   label:"Bâtiments",era:2},
+  {id:"savoir",  label:"Savoir",        era:2},
+  {id:"plaisir", label:"Loisirs",       era:3},
+  {id:"prestige",label:"Prestige",      era:3},
+  {id:"divin",   label:"Divin",         era:3},
+  {id:"legend",  label:"Légendaire",era:4}
+];
+var B = [
+  {id:"puits",    cat:"agri",  era:1,ico:"💧",name:"Puits",                 desc:"+0.02 N/s",             cost:{m:30},                  prod:{n:0.02},        cp:{n:0.5}},
+  {id:"champ",    cat:"agri",  era:1,ico:"🌾",name:"Champ de blé",     desc:"+0.05 N/s",             cost:{m:80,n:20},              prod:{n:0.05},        cp:{n:1}},
+  {id:"ferme",    cat:"agri",  era:1,ico:"🐄",name:"Ferme complète",   desc:"+0.1 N/s",              cost:{m:200,n:80},             prod:{n:0.1},         cp:{n:2}},
+  {id:"moulin",   cat:"agri",  era:1,ico:"🐴",name:"Moulin",                desc:"+0.08 N/s +0.01 S/s",   cost:{m:350,s:50},             prod:{n:0.08,s:0.01}, cp:{n:1.5}},
+  {id:"vignoble", cat:"agri",  era:2,ico:"🍇",name:"Vignoble",              desc:"+0.12 N/s +0.03 O/s",   cost:{m:800,o:200},            prod:{n:0.12,o:0.03}, cp:{n:2,o:0.5}},
+  {id:"elevage",  cat:"agri",  era:1,ico:"🐐",name:"Elevage",               desc:"+0.1 N/s +0.01 P/s",    cost:{m:150,n:60},             prod:{n:0.1,p:0.01},  cp:{n:2}},
+  {id:"verger",   cat:"agri",  era:2,ico:"🍎",name:"Verger",                desc:"+0.08 N/s +0.02 O/s",   cost:{m:500,n:150},            prod:{n:0.08,o:0.02}, cp:{n:1.5}},
+  {id:"irrigat",  cat:"agri",  era:2,ico:"🌊",name:"Irrigation",            desc:"+0.2 N/s",              cost:{m:1200,s:300},           prod:{n:0.2},         cp:{n:3}},
+  {id:"grenier",  cat:"agri",  era:2,ico:"🏠",name:"Grenier fortifié", desc:"+0.15 N/s",             cost:{m:800,o:100},            prod:{n:0.15},        cp:{n:2}},
+  {id:"serre",    cat:"agri",  era:3,ico:"🌿",name:"Serre alchimique",      desc:"+0.4 N/s +0.1 S/s",     cost:{m:5000,s:2000,o:800},   prod:{n:0.4,s:0.1},   cp:{n:6,s:2}},
+  {id:"plantation",cat:"agri", era:3,ico:"🌳",name:"Plantation exotique",   desc:"+0.5 N/s +0.2 O/s",     cost:{m:8000,o:3000,s:1000},  prod:{n:0.5,o:0.2},   cp:{n:8,o:3}},
+  {id:"sold3",    cat:"mil",   era:1,ico:"👤",name:"Soldats x3",            desc:"+0.03 G/s",             cost:{g:50,n:50},              prod:{g:0.03},        cp:{g:0.5}},
+  {id:"garde3",   cat:"mil",   era:1,ico:"🥷",name:"Gardes élite x3", desc:"+0.08 G/s",             cost:{g:150,n:80,o:30},        prod:{g:0.08},        cp:{g:1}},
+  {id:"archer3",  cat:"mil",   era:1,ico:"🏹",name:"Archers x3",            desc:"+0.08 G/s",             cost:{g:120,n:80,m:60},        prod:{g:0.08},        cp:{g:1}},
+  {id:"cav2",     cat:"mil",   era:2,ico:"🐎",name:"Cavaliers x2",          desc:"+0.15 G/s",             cost:{g:400,n:300,o:150},      prod:{g:0.15},        cp:{g:2}},
+  {id:"chef",     cat:"mil",   era:2,ico:"👑",name:"Chef de guerre",        desc:"+0.25 G/s",             cost:{g:800,n:500,o:300},      prod:{g:0.25},        cp:{g:3}},
+  {id:"merc",     cat:"mil",   era:2,ico:"💼",name:"Mercenaires",           desc:"+0.2 G/s",              cost:{o:200,g:150},            prod:{g:0.2},         cp:{g:2.5}},
+  {id:"armee",    cat:"mil",   era:2,ico:"⚔",  name:"Armée régulière",desc:"+0.5 G/s",    cost:{g:1500,n:800,o:600},     prod:{g:0.5},         cp:{g:6}},
+  {id:"ninja_u",  cat:"mil",   era:3,ico:"🥷",name:"Corps de ninjas",       desc:"+0.6 G/s +0.1 S/s",    cost:{g:3000,s:2000,o:1500},   prod:{g:0.6,s:0.1},   cp:{g:8}},
+  {id:"legion",   cat:"mil",   era:3,ico:"🕆",name:"Légion immortelle",desc:"+1 G/s",               cost:{g:8000,n:4000,o:3000},   prod:{g:1},           cp:{g:12}},
+  {id:"armee_div",cat:"mil",   era:4,ico:"☀",  name:"Armée divine",     desc:"+3 G/s",               cost:{g:50000,n:20000,s:15000,o:10000},prod:{g:3},    cp:{g:35}},
+  {id:"forge_b",  cat:"armes", era:1,ico:"🔨",name:"Forge à épées",desc:"+0.05 G/s",     cost:{m:200,g:80},             prod:{g:0.05},        cp:{g:0.8}},
+  {id:"arsenal",  cat:"armes", era:2,ico:"🗡",name:"Arsenal",               desc:"+0.08 G/s",             cost:{m:500,g:150},            prod:{g:0.08},        cp:{g:1}},
+  {id:"arbal",    cat:"armes", era:2,ico:"🏹",name:"Arbalètes x5",     desc:"+0.1 G/s",              cost:{m:800,s:200,o:150},      prod:{g:0.1},         cp:{g:1.5}},
+  {id:"cata",     cat:"armes", era:2,ico:"💡",name:"Catapulte",             desc:"+0.12 G/s",             cost:{m:1200,g:400,o:300},     prod:{g:0.12},        cp:{g:2}},
+  {id:"belier",   cat:"armes", era:2,ico:"🐐",name:"Bélier de siège",desc:"+0.1 G/s",          cost:{m:900,g:300,o:200},      prod:{g:0.1},         cp:{g:1.5}},
+  {id:"baliste",  cat:"armes", era:3,ico:"💡",name:"Baliste",               desc:"+0.3 G/s",              cost:{m:3000,g:1000,s:800,o:600},prod:{g:0.3},       cp:{g:4}},
+  {id:"armure_c", cat:"armes", era:3,ico:"🥷",name:"Armure complète",  desc:"+0.4 G/s",              cost:{m:4000,g:1500,o:1000},   prod:{g:0.4},         cp:{g:5}},
+  {id:"relique",  cat:"armes", era:3,ico:"🔮",name:"Relique de guerre",     desc:"+0.6 G/s",              cost:{m:8000,g:3000,s:2000,o:1500},prod:{g:0.6},     cp:{g:8}},
+  {id:"barque",   cat:"marine",era:1,ico:"🚣",name:"Barque de pêche",  desc:"+0.03 N/s",             cost:{m:100,n:30},             prod:{n:0.03},        cp:{n:0.5}},
+  {id:"navmarch", cat:"marine",era:2,ico:"🚢",name:"Navire marchand",       desc:"+0.1 O/s",              cost:{m:600,o:200},            prod:{o:0.1},         cp:{o:1.5}},
+  {id:"galere",   cat:"marine",era:2,ico:"☕",  name:"Galère de guerre", desc:"+0.15 G/s",             cost:{m:1000,g:400,o:300},     prod:{g:0.15},        cp:{g:2}},
+  {id:"drakkar",  cat:"marine",era:2,ico:"⚓",  name:"Drakkar / Trirème",desc:"+0.2 G/s +0.05 O/s",   cost:{m:1500,g:600,o:400},     prod:{g:0.2,o:0.05},  cp:{g:3,o:0.8}},
+  {id:"flotte5",  cat:"marine",era:3,ico:"🌊",name:"Flotte de 5 navires",   desc:"+0.5 G/s +0.2 O/s",    cost:{m:5000,g:2000,o:1500},   prod:{g:0.5,o:0.2},   cp:{g:7,o:3}},
+  {id:"serpmer",  cat:"marine",era:3,ico:"🐛",name:"Serpent de mer",        desc:"+0.8 G/s",              cost:{m:10000,g:4000,s:2000,o:2000},prod:{g:0.8},    cp:{g:10}},
+  {id:"armada",   cat:"marine",era:4,ico:"🚣",name:"Armada légendaire",desc:"+2 G/s +0.8 O/s",       cost:{m:30000,g:12000,o:10000},prod:{g:2,o:0.8},     cp:{g:25,o:10}},
+  {id:"marche_l", cat:"eco",   era:1,ico:"🪙",name:"Marché local",     desc:"+0.05 O/s",             cost:{m:150,o:50},             prod:{o:0.05},        cp:{o:0.8}},
+  {id:"comptoir", cat:"eco",   era:2,ico:"🏪",name:"Comptoir commercial",   desc:"+0.12 O/s",             cost:{m:500,o:150,s:80},       prod:{o:0.12},        cp:{o:2}},
+  {id:"route",    cat:"eco",   era:2,ico:"🛣",name:"Route commerciale",     desc:"+0.1 O/s",              cost:{m:600,o:200},            prod:{o:0.1},         cp:{o:1.5}},
+  {id:"banque_c", cat:"eco",   era:2,ico:"🏚",name:"Banque de la cité",desc:"+0.2 O/s",             cost:{m:1200,s:400,o:400},     prod:{o:0.2},         cp:{o:3}},
+  {id:"foire",    cat:"eco",   era:3,ico:"🎪",name:"Foire internationale",  desc:"+0.4 O/s",              cost:{m:3000,o:1000,s:800},    prod:{o:0.4},         cp:{o:6}},
+  {id:"portfranc",cat:"eco",   era:3,ico:"🗻",name:"Port franc",            desc:"+0.3 O/s +0.1 N/s",    cost:{m:4000,o:1500},          prod:{o:0.3,n:0.1},   cp:{o:4.5}},
+  {id:"monopole", cat:"eco",   era:3,ico:"💎",name:"Monopole des épices",desc:"+0.6 O/s",           cost:{m:6000,o:2500,s:1500},   prod:{o:0.6},         cp:{o:8}},
+  {id:"tresor",   cat:"eco",   era:4,ico:"🏺",name:"Trésor national",  desc:"+1.5 O/s",              cost:{o:10000,m:8000,s:5000},  prod:{o:1.5},         cp:{o:20}},
+  {id:"entrepot", cat:"civil", era:1,ico:"📦",name:"Entrepôt",         desc:"+0.05 M/s",             cost:{m:200,o:80},             prod:{m:0.05},        cp:{m:1}},
+  {id:"caserne",  cat:"civil", era:2,ico:"🏠",name:"Caserne",               desc:"+0.08 G/s",             cost:{m:600,g:200},            prod:{g:0.08},        cp:{g:1}},
+  {id:"hopital",  cat:"civil", era:2,ico:"🏥",name:"Hôpital",          desc:"+0.06 G/s +0.03 N/s",  cost:{m:500,s:200,o:150},      prod:{g:0.06,n:0.03}, cp:{g:0.8}},
+  {id:"atelier",  cat:"civil", era:2,ico:"⚙",  name:"Atelier artisanal",     desc:"+0.06 M/s",             cost:{m:400,s:150},            prod:{m:0.06},        cp:{m:1.2}},
+  {id:"academie", cat:"civil", era:2,ico:"🏫",name:"Académie militaire",desc:"+0.12 G/s +0.04 S/s", cost:{m:1000,s:400,o:300},     prod:{g:0.12,s:0.04}, cp:{g:1.5}},
+  {id:"stade",    cat:"civil", era:3,ico:"🏟",name:"Stade",                 desc:"+0.1 G/s +0.05 O/s",   cost:{m:2000,o:600},           prod:{g:0.1,o:0.05},  cp:{g:1.5,o:0.8}},
+  {id:"theatre",  cat:"civil", era:2,ico:"🎭",name:"Théâtre",     desc:"+0.05 S/s +0.03 O/s",  cost:{m:800,s:200,o:200},      prod:{s:0.05,o:0.03}, cp:{s:0.8}},
+  {id:"bains",    cat:"civil", era:2,ico:"🚼",name:"Bains publics",         desc:"+0.04 N/s +0.02 S/s",  cost:{m:600,n:150,o:100},      prod:{n:0.04,s:0.02}, cp:{n:0.6}},
+  {id:"phare",    cat:"civil", era:3,ico:"💡",name:"Phare maritime",        desc:"+0.08 O/s +0.06 G/s",  cost:{m:1500,s:400,o:400},     prod:{o:0.08,g:0.06}, cp:{o:1.2}},
+  {id:"forum",    cat:"civil", era:2,ico:"👪",name:"Forum citoyen",         desc:"+0.05 P/s",             cost:{m:800,o:300},            prod:{p:0.05},        cp:{p:0.8}},
+  {id:"qr_pop",   cat:"civil", era:2,ico:"🏙",name:"Quartier résidentiel",desc:"+0.1 P/s",          cost:{m:1200,n:400,o:200},     prod:{p:0.1},         cp:{p:1.5}},
+  {id:"ecole",    cat:"savoir",era:1,ico:"📘",name:"Ecole",                 desc:"+0.05 S/s",             cost:{m:150,s:50},             prod:{s:0.05},        cp:{s:0.8}},
+  {id:"biblio",   cat:"savoir",era:2,ico:"📚",name:"Bibliothèque",     desc:"+0.15 S/s",             cost:{m:500,s:300},            prod:{s:0.15},        cp:{s:2}},
+  {id:"scriptorium",cat:"savoir",era:2,ico:"✎",name:"Scriptorium",          desc:"+0.1 S/s",              cost:{m:700,s:200,o:150},      prod:{s:0.1},         cp:{s:1.5}},
+  {id:"observ",   cat:"savoir",era:2,ico:"🔭",name:"Observatoire",          desc:"+0.15 S/s",             cost:{m:1000,s:400,o:200},     prod:{s:0.15},        cp:{s:2}},
+  {id:"univ",     cat:"savoir",era:3,ico:"🏫",name:"Université",       desc:"+0.4 S/s",              cost:{m:4000,s:2000,o:1000},   prod:{s:0.4},         cp:{s:6}},
+  {id:"temple_s", cat:"savoir",era:2,ico:"⛩",  name:"Temple dédié",desc:"+0.12 S/s +0.04 G/s",  cost:{m:800,s:300,o:200},      prod:{s:0.12,g:0.04}, cp:{s:2}},
+  {id:"gd_temple",cat:"savoir",era:3,ico:"🏫",name:"Grand Temple",          desc:"+0.3 S/s +0.1 G/s",    cost:{m:3000,s:1500,o:800},    prod:{s:0.3,g:0.1},   cp:{s:4,g:1.5}},
+  {id:"oracle",   cat:"savoir",era:2,ico:"🔮",name:"Oracle",                desc:"+0.08 S/s",             cost:{s:300,o:200},            prod:{s:0.08},        cp:{s:1.2}},
+  {id:"pantheon", cat:"savoir",era:3,ico:"🏛",name:"Panthéon",         desc:"+0.6 S/s +0.2 G/s",    cost:{m:6000,s:3000,o:2000},   prod:{s:0.6,g:0.2},   cp:{s:8,g:3}},
+  {id:"grimoire", cat:"savoir",era:4,ico:"📕",name:"Grimoire légendaire",desc:"+1.5 S/s",            cost:{s:10000,o:5000},         prod:{s:1.5},         cp:{s:20}},
+  {id:"taverne",  cat:"plaisir",era:2,ico:"🍺",name:"Taverne",              desc:"+0.05 O/s +0.02 G/s",  cost:{m:300,n:100,o:80},       prod:{o:0.05,g:0.02}, cp:{o:0.8}},
+  {id:"bar",      cat:"plaisir",era:2,ico:"🍻",name:"Bar de marins",        desc:"+0.06 O/s +0.02 N/s",  cost:{m:400,n:120,o:100},      prod:{o:0.06,n:0.02}, cp:{o:0.9}},
+  {id:"mclose",   cat:"plaisir",era:3,ico:"🌸",name:"Maison close",         desc:"+0.15 O/s",             cost:{m:1000,n:300,o:400},     prod:{o:0.15},        cp:{o:2}},
+  {id:"cirque",   cat:"plaisir",era:3,ico:"🎠",name:"Cirque",               desc:"+0.12 O/s +0.08 G/s",  cost:{m:2000,n:600,o:600},     prod:{o:0.12,g:0.08}, cp:{o:2}},
+  {id:"colisee",  cat:"plaisir",era:3,ico:"🏛",name:"Colisée",         desc:"+0.3 G/s +0.2 O/s",    cost:{m:5000,g:2000,o:1500},   prod:{g:0.3,o:0.2},   cp:{g:4,o:3}},
+  {id:"palais_p", cat:"plaisir",era:4,ico:"🏫",name:"Palais du plaisir",    desc:"+1 O/s +0.3 G/s",      cost:{m:20000,n:8000,o:8000},  prod:{o:1,g:0.3},     cp:{o:14}},
+  {id:"statue",   cat:"prestige",era:2,ico:"🗿",name:"Statue du fondateur", desc:"+0.06 S/s",             cost:{m:600,s:200,o:150},      prod:{s:0.06},        cp:{s:1}},
+  {id:"muraille", cat:"prestige",era:2,ico:"🧱",name:"Muraille",            desc:"+0.08 G/s",             cost:{m:1200,g:400},           prod:{g:0.08},        cp:{g:1.2}},
+  {id:"forteresse",cat:"prestige",era:3,ico:"🏰",name:"Forteresse",         desc:"+0.3 G/s",              cost:{m:6000,g:2000,o:1500},   prod:{g:0.3},         cp:{g:4}},
+  {id:"palais",   cat:"prestige",era:3,ico:"🏫",name:"Palais royal",        desc:"+0.2 S/s +0.1 O/s",    cost:{m:5000,s:2000,o:2000},   prod:{s:0.2,o:0.1},   cp:{s:3}},
+  {id:"pyramide", cat:"prestige",era:3,ico:"🔺",name:"Pyramide",            desc:"+0.3 S/s +0.1 G/s",    cost:{m:8000,s:3000,o:2000},   prod:{s:0.3,g:0.1},   cp:{s:4}},
+  {id:"arc",      cat:"prestige",era:3,ico:"🌈",name:"Arc de triomphe",     desc:"+0.2 G/s",              cost:{m:4000,g:1500,o:1200},   prod:{g:0.2},         cp:{g:3}},
+  {id:"mausolee", cat:"prestige",era:3,ico:"⛤",  name:"Mausolée",       desc:"+0.2 S/s",              cost:{m:5000,s:2500,o:1500},   prod:{s:0.2},         cp:{s:3}},
+  {id:"autel",    cat:"divin",  era:2,ico:"⚖",  name:"Autel des dieux",      desc:"+0.06 S/s +0.02 G/s",  cost:{m:500,s:150},            prod:{s:0.06,g:0.02}, cp:{s:1}},
+  {id:"oracle2",  cat:"divin",  era:3,ico:"🔮",name:"Oracle sacré",    desc:"+0.15 S/s +0.05 G/s",  cost:{m:2000,s:1000,o:500},    prod:{s:0.15,g:0.05}, cp:{s:2}},
+  {id:"gran_pret",cat:"divin",  era:3,ico:"👑",name:"Grand Prêtre",    desc:"+0.2 S/s +0.1 P/s",    cost:{s:3000,o:1000,m:1500},   prod:{s:0.2,p:0.1},   cp:{s:3}},
+  {id:"miracle",  cat:"divin",  era:3,ico:"✨", name:"Miracle divin",        desc:"+0.3 S/s +0.1 tout",   cost:{s:8000,o:3000,g:2000},   prod:{s:0.3,g:0.1,n:0.1,m:0.1,o:0.1},cp:{s:5}},
+  {id:"prophetie_s",cat:"divin",era:4,ico:"📻",name:"Prophétie",       desc:"+0.5 S/s +0.2 tout",   cost:{s:20000,o:10000,g:8000}, prod:{s:0.5,g:0.2,n:0.2,m:0.2,o:0.2},cp:{s:8}},
+  {id:"dragon",   cat:"legend", era:4,ico:"🐉",name:"Dragon apprivoisé",desc:"+1.5 G/s +0.3 S/s",   cost:{g:30000,m:20000,s:15000,o:12000},prod:{g:1.5,s:0.3},cp:{g:20}},
+  {id:"merveille",cat:"legend", era:4,ico:"✨", name:"Merveille du Monde",   desc:"+2 S/s +1 O/s",        cost:{m:50000,s:30000,o:25000,g:20000},prod:{s:2,o:1}, cp:{s:28,o:12}},
+  {id:"dieu",     cat:"legend", era:4,ico:"☀",  name:"Dieu allié",      desc:"+2 G/s +2 S/s",        cost:{s:60000,o:30000,g:25000},prod:{g:2,s:2},        cp:{g:25,s:25}},
+  {id:"armorts",  cat:"legend", era:4,ico:"💀",name:"Armée des morts", desc:"+3 G/s",               cost:{g:50000,s:30000,o:20000},prod:{g:3},            cp:{g:40}},
+  {id:"portail",  cat:"legend", era:4,ico:"🌀",name:"Portail dimensionnel", desc:"+1.5 S/s +1.5 G/s",   cost:{s:40000,m:30000,o:25000},prod:{s:1.5,g:1.5},    cp:{s:20,g:20}},
+  {id:"prophetie",cat:"legend", era:4,ico:"📯",name:"Prophétie de victoire",desc:"+0.5 tout/s",     cost:{s:40000,o:30000,g:20000},prod:{g:0.5,n:0.5,m:0.5,s:0.5,o:0.5},cp:{g:8,s:8}},
+  {id:"trone",    cat:"legend", era:4,ico:"🫑",name:"Trône des civilisations",desc:"+4 O/s +1 tout/s",cost:{o:80000,g:60000,s:50000,m:40000,n:30000},prod:{o:4,g:1,n:1,m:1,s:1},cp:{o:50}},
+  {id:"apocalypse",cat:"legend",era:4,ico:"🔥",name:"Apocalypse divine",   desc:"+3 tout/s",             cost:{g:100000,s:90000,o:80000,m:70000,n:60000},prod:{g:3,n:3,m:3,s:3,o:3},cp:{g:40,s:40}}
+];
+
+var S = {civ:null,res:{g:0,n:0,m:0,s:0,o:0,p:0},counts:{},total:0,tab:"agri",view:"shop",playTime:0};
+
+function key(c){return "civ_scout_"+c;}
+function saveGame(){
+  if(!S.civ)return;
+  localStorage.setItem(key(S.civ),JSON.stringify({res:S.res,counts:S.counts,total:S.total,playTime:S.playTime,savedAt:Date.now()}));
+  var el=document.getElementById("save-info");
+  el.style.display="block";
+  el.textContent="Sauvegarde: "+new Date().toLocaleString("fr-FR");
+  showNotif("Sauvegarde OK !");
+}
+function loadGame(c){
+  var raw=localStorage.getItem(key(c));
+  if(!raw)return false;
+  var d=JSON.parse(raw);
+  S.res=d.res||{g:0,n:0,m:0,s:0,o:0,p:0};
+  S.counts=d.counts||{};
+  S.total=d.total||0;
+  S.playTime=d.playTime||0;
+  return d.savedAt;
+}
+function hasSave(c){return !!localStorage.getItem(key(c));}
+
+function fmt(n){n=Math.floor(n);if(n>=1e9)return(n/1e9).toFixed(1)+"G";if(n>=1e6)return(n/1e6).toFixed(1)+"M";if(n>=1e3)return(n/1e3).toFixed(1)+"k";return""+n;}
+function fmtR(r){if(r<0.01)return r.toFixed(4);if(r<0.1)return r.toFixed(3);if(r<1)return r.toFixed(2);return r.toFixed(1);}
+function getRates(){var r={g:0,n:0,m:0,s:0,o:0,p:0};B.forEach(function(b){var c=S.counts[b.id]||0;if(c>0&&b.prod)Object.keys(b.prod).forEach(function(k){r[k]+=b.prod[k]*c;});});return r;}
+function canAfford(cost){return Object.keys(cost).every(function(k){return(S.res[k]||0)>=cost[k];});}
+function getEra(){if(S.total>=50000)return 4;if(S.total>=5000)return 3;if(S.total>=500)return 2;return 1;}
+function showNotif(msg){var el=document.getElementById("notif");el.textContent=msg;el.style.display="block";clearTimeout(showNotif._t);showNotif._t=setTimeout(function(){el.style.display="none";},2000);}
+function closeModal(id){document.getElementById(id).style.display="none";}
+function openExport(){
+  var data={res:S.res,counts:S.counts,total:S.total,playTime:S.playTime,savedAt:Date.now()};
+  document.getElementById("export-code").value=btoa(JSON.stringify(data));
+  document.getElementById("modal-export").style.display="block";
+}
+function copyCode(){
+  var ta=document.getElementById("export-code");
+  ta.select();
+  try{document.execCommand("copy");}catch(e){}
+  if(navigator.clipboard)navigator.clipboard.writeText(ta.value);
+  showNotif("Code copie !");
+}
+function openImport(){document.getElementById("modal-import").style.display="block";}
+function doImport(){
+  var code=document.getElementById("import-code").value.trim();
+  try{
+    var d=JSON.parse(atob(code));
+    S.res=d.res||{g:0,n:0,m:0,s:0,o:0,p:0};
+    S.counts=d.counts||{};
+    S.total=d.total||0;
+    S.playTime=d.playTime||0;
+    saveGame();
+    closeModal("modal-import");
+    renderAll();
+    showNotif("Sauvegarde importee !");
+  }catch(e){showNotif("Code invalide !");}
+}
+function step1Reset(){
+  document.getElementById("btn-reset1").style.display="none";
+  document.getElementById("btn-reset2").style.display="inline-block";
+  clearTimeout(step1Reset._t);
+  step1Reset._t=setTimeout(function(){
+    document.getElementById("btn-reset1").style.display="inline-block";
+    document.getElementById("btn-reset2").style.display="none";
+  },4000);
+}
+function step2Reset(){
+  localStorage.removeItem(key(S.civ));
+  S.res={g:0,n:0,m:0,s:0,o:0,p:0};S.counts={};S.total=0;S.playTime=0;
+  document.getElementById("btn-reset1").style.display="inline-block";
+  document.getElementById("btn-reset2").style.display="none";
+  renderAll();
+  showNotif("Partie remise a zero !");
+}
+
+function renderCivScreen(){
+  var g=document.getElementById("civ-grid");g.innerHTML="";
+  Object.keys(CIVS).forEach(function(k){
+    var v=CIVS[k];var d=document.createElement("div");d.className="civ-card";
+    var savedAt=null;
+    if(hasSave(k)){try{savedAt=JSON.parse(localStorage.getItem(key(k))).savedAt;}catch(e){}}
+    d.innerHTML='<div class="ico">'+v.icon+'</div><div class="nm">'+v.name+'</div>'+(savedAt?'<div class="saved">Sauvegarde: '+new Date(savedAt).toLocaleDateString("fr-FR")+'</div>':'');
+    d.onclick=function(){startGame(k);};
+    g.appendChild(d);
+  });
+}
+
+function startGame(k){
+  S.civ=k;var saved=loadGame(k);
+  document.getElementById("screen-civ").style.display="none";
+  document.getElementById("screen-game").style.display="block";
+  var c=CIVS[k];
+  document.getElementById("main-click").innerHTML=c.icon;
+  document.getElementById("hdr-icon").innerHTML=c.icon;
+  document.getElementById("hdr-name").innerHTML=c.name;
+  if(saved){
+    var el=document.getElementById("save-info");
+    el.style.display="block";
+    el.textContent="Partie chargee du "+new Date(saved).toLocaleString("fr-FR");
+    showNotif("Partie chargee !");
+  }
+  renderAll();
+}
+function changeCiv(){saveGame();document.getElementById("screen-game").style.display="none";document.getElementById("screen-civ").style.display="flex";renderCivScreen();}
+function mainClick(){S.res.m=(S.res.m||0)+0.5;S.total+=0.5;renderAll();}
+function clickBuilding(id){
+  var b=B.find(function(x){return x.id===id;});
+  if(!b||(S.counts[id]||0)===0)return;
+  var mult=S.counts[id];
+  Object.keys(b.cp||{}).forEach(function(k){S.res[k]=(S.res[k]||0)+b.cp[k]*mult;S.total+=b.cp[k]*mult;});
+  renderAll();
+}
+function buyBuilding(id){
+  var b=B.find(function(x){return x.id===id;});
+  if(!b||!canAfford(b.cost)||b.era>getEra()){showNotif(b&&b.era>getEra()?"Ere pas encore debloq !":"Pas assez de ressources !");return;}
+  Object.keys(b.cost).forEach(function(k){S.res[k]-=b.cost[k];});
+  S.counts[id]=(S.counts[id]||0)+1;
+  showNotif(b.name+" construit !");
+  renderAll();
+}
+function setTab(t){S.tab=t;renderCenter();}
+function setView(v){
+  S.view=v;
+  document.getElementById("vshop").className="tab"+(v==="shop"?" active":"");
+  document.getElementById("vowned").className="tab"+(v==="owned"?" active":"");
+  renderCenter();
+}
+
+function renderAll(){
+  var era=getEra();var eraData=ERAS[era-1];
+  document.getElementById("hdr-era").innerHTML='<span style="background:'+eraData.color+';padding:3px 10px;border-radius:6px;font-size:11px">'+eraData.name+'</span>';
+  document.getElementById("hdr-total").textContent=fmt(S.total)+" ressources produites totales";
+  renderRes();renderCenter();renderRight();
+}
+
+function renderRes(){
+  var rates=getRates();var h="";
+  Object.keys(RN).forEach(function(k){
+    h+='<div class="res-row"><span style="color:'+RC[k]+'">'+RN[k]+'</span><div style="text-align:right"><div style="font-weight:bold;color:#fff;font-variant-numeric:tabular-nums">'+fmt(S.res[k]||0)+'</div>'+(rates[k]>0?'<div class="res-rate">+'+fmtR(rates[k])+'/s</div>':'')+' </div></div>';
+  });
+  document.getElementById("res-panel").innerHTML=h;
+  var owned=B.filter(function(b){return(S.counts[b.id]||0)>0;});
+  var ho=owned.length===0?'<div style="font-size:10px;color:#444;margin-top:4px">Aucun encore</div>':'';
+  owned.forEach(function(b){ho+='<div class="owned-row" onclick="clickBuilding(\"'+b.id+'\")"><span style="color:#999">'+b.ico+' '+b.name+'</span><span style="color:#60a5fa;font-weight:bold">'+S.counts[b.id]+'</span></div>';});
+  document.getElementById("owned-mini").innerHTML=ho;
+}
+
+function renderCenter(){
+  var era=getEra();var h="";
+  if(S.view==="shop"){
+    h+='<div class="tab-row">';
+    CATS.forEach(function(c){var avail=c.era<=era;h+='<button class="tab'+(S.tab===c.id?" active":"")+'" onclick="'+(avail?"setTab('"+c.id+"')":"")+'" style="'+(avail?"":"opacity:.4;cursor:not-allowed")+'">'+(avail?"":("E"+c.era+" "))+c.label+'</button>';});
+    h+='</div>';
+    var catB=B.filter(function(b){return b.cat===S.tab;});
+    catB.forEach(function(b){
+      var ok=canAfford(b.cost)&&b.era<=era;
+      var cnt=S.counts[b.id]||0;
+      var costStr=Object.keys(b.cost).map(function(k){return fmt(b.cost[k])+" "+RN[k];}).join(" | ");
+      h+='<div class="bld'+(ok?"":" locked")+'" onclick="'+(ok?"buyBuilding('"+b.id+"')":"")+'">';
+      h+='<div class="bld-ico">'+b.ico+'</div>';
+      h+='<div class="bld-info"><div class="bld-name">'+b.name+(cnt>0?' <span style="color:#60a5fa;font-size:10px">x'+cnt+'</span>':'')+'</div>';
+      h+='<div class="bld-desc">'+b.desc+'</div>';
+      h+='<div class="bld-cost">'+costStr+'</div></div></div>';
+    });
+  } else {
+    var owned=B.filter(function(b){return(S.counts[b.id]||0)>0;});
+    if(owned.length===0){h='<div style="text-align:center;color:#555;padding:30px;font-size:13px">Aucun bâtiment encore</div>';}
+    else{owned.forEach(function(b){h+='<div class="bld" onclick="clickBuilding(\"'+b.id+'\")"><div class="bld-ico">'+b.ico+'</div><div class="bld-info"><div class="bld-name">'+b.name+'</div><div class="bld-desc">'+b.desc+'</div><div class="bld-cost" style="color:#4ade80">Clic = production instantanee (x'+S.counts[b.id]+')</div></div><div class="bld-cnt">'+S.counts[b.id]+'</div></div>';});}
+  }
+  document.getElementById("center-content").innerHTML=h;
+}
+
+function renderRight(){
+  var rates=getRates();var era=getEra();var h="";
+  Object.keys(RN).forEach(function(k){var r=rates[k]||0;h+='<div class="res-row"><span style="color:'+RC[k]+'">'+RN[k]+'</span><span style="font-weight:bold;color:'+(r>0?"#4ade80":"#444")+'">'+(r>0?"+"+fmtR(r)+"/s":"—")+'</span></div>';});
+  document.getElementById("rates-panel").innerHTML=h;
+  var owned=B.filter(function(b){return(S.counts[b.id]||0)>0;});
+  document.getElementById("progress-panel").innerHTML='<div class="res-row"><span style="color:#aaa">Bâtiments</span><span style="color:#fff;font-weight:bold">'+owned.length+'/'+B.length+'</span></div><div class="res-row"><span style="color:#aaa">Total</span><span style="color:#fff;font-weight:bold">'+fmt(S.total)+'</span></div><div class="res-row"><span style="color:#aaa">Prochaine ère</span><span style="color:#fbbf24;font-weight:bold">'+(era<4?fmt(ERAS[era].unlock):"MAX")+'</span></div>';
+  var eraH="";ERAS.forEach(function(e){var u=S.total>=e.unlock;eraH+='<div style="padding:3px 0;font-size:11px;color:'+(u?"#4ade80":"#444")+'">'+(u?"✅":"☐")+" "+e.name+(u?"":" ("+fmt(e.unlock)+")")+'</div>';});
+  document.getElementById("era-panel").innerHTML=eraH;
+}
+
+setInterval(function(){var rates=getRates();var added=0;Object.keys(rates).forEach(function(k){S.res[k]=(S.res[k]||0)+rates[k]*0.5;added+=rates[k]*0.5;});S.total+=added;renderAll();},500);
+setInterval(function(){if(S.civ)saveGame();},60000);
+renderCivScreen();
+</script>
+</body>
+</html>
