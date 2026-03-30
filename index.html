@@ -84,7 +84,7 @@ body{font-family:Arial,sans-serif;background:#1a1a2e;color:#eee;min-height:100vh
       </div>
     </div>
     <div>
-      <button class="cb" id="mc" onclick="mainClick()"></button>
+      <button class="cb" id="mc" onclick="mainClick()" style="display:none"></button>
       <div style="font-size:10px;color:#444;text-align:center;margin-bottom:8px">Clic central = +Materiaux * Clic batiment = production instantanee</div>
       <div style="display:flex;gap:6px;margin-bottom:8px">
         <button class="tab active" id="vs" onclick="setView('shop')">Marche</button>
@@ -352,23 +352,9 @@ function startGame(k){
   renderAll();
 }
 function changeCiv(){saveGame();document.getElementById("sg").style.display="none";document.getElementById("sc").style.display="flex";renderCivScreen();}
-var _lastClicks=[];
-function _canClick(){
-  var now=Date.now();
-  _lastClicks=_lastClicks.filter(function(t){return now-t<1000;});
-  if(_lastClicks.length>=3)return false;
-  _lastClicks.push(now);
-  return true;
-}
-function mainClick(){
-  if(!_canClick())return;
-  S.res.m=(S.res.m||0)+0.01;S.total+=0.01;renderAll();
-}
-function clickBuilding(id){
-  if(!_canClick())return;
-  var b=B.find(function(x){return x.id===id;});if(!b||(S.counts[id]||0)===0)return;
-  var mult=S.counts[id];Object.keys(b.cp||{}).forEach(function(k){S.res[k]=(S.res[k]||0)+b.cp[k]*mult;S.total+=b.cp[k]*mult;});renderAll();
-}
+function _canClick(){return false;}
+function mainClick(){return;}
+function clickBuilding(id){return;}
 function buyBuilding(id){
   var b=B.find(function(x){return x.id===id;});if(!b||!canAfford(b.cost)||b.era>getEra()){showNotif(b&&b.era>getEra()?"Ere pas encore debloquee !":"Pas assez de ressources !");return;}
   Object.keys(b.cost).forEach(function(k){S.res[k]-=b.cost[k];});S.counts[id]=(S.counts[id]||0)+1;showNotif(b.name+" construit !");renderAll();
