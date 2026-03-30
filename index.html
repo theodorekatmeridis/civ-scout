@@ -352,8 +352,20 @@ function startGame(k){
   renderAll();
 }
 function changeCiv(){saveGame();document.getElementById("sg").style.display="none";document.getElementById("sc").style.display="flex";renderCivScreen();}
-function mainClick(){S.res.m=(S.res.m||0)+0.1;S.total+=0.1;renderAll();}
+var _lastClicks=[];
+function _canClick(){
+  var now=Date.now();
+  _lastClicks=_lastClicks.filter(function(t){return now-t<1000;});
+  if(_lastClicks.length>=3)return false;
+  _lastClicks.push(now);
+  return true;
+}
+function mainClick(){
+  if(!_canClick())return;
+  S.res.m=(S.res.m||0)+0.01;S.total+=0.01;renderAll();
+}
 function clickBuilding(id){
+  if(!_canClick())return;
   var b=B.find(function(x){return x.id===id;});if(!b||(S.counts[id]||0)===0)return;
   var mult=S.counts[id];Object.keys(b.cp||{}).forEach(function(k){S.res[k]=(S.res[k]||0)+b.cp[k]*mult;S.total+=b.cp[k]*mult;});renderAll();
 }
