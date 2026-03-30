@@ -89,8 +89,46 @@ body{font-family:Arial,sans-serif;background:#1a1a2e;color:#eee;min-height:100vh
       <div style="display:flex;gap:6px;margin-bottom:8px">
         <button class="tab active" id="vs" onclick="setView('shop')">Marche</button>
         <button class="tab" id="vo" onclick="setView('owned')">Mes batiments</button>
+        <button class="tab" id="vt" onclick="setView('trade')">Trading</button>
       </div>
       <div id="cc" class="sc" style="max-height:440px"></div>
+    <div id="trd-panel" style="display:none">
+      <div id="trd-chart-wrap" style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:12px;margin-bottom:12px"></div>
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:12px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Placer un pari</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+          <div>
+            <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:4px">Ressource</div>
+            <select id="trd-res" style="width:100%;font-size:13px;padding:6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary)">
+              <option value="g">Guerriers</option>
+              <option value="n">Nourriture</option>
+              <option value="m">Materiaux</option>
+              <option value="o" selected>Or</option>
+              <option value="s">Savoir</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:4px">Montant</div>
+            <input type="number" id="trd-amt" min="1" value="50" style="width:100%;font-size:13px;padding:6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary)">
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:4px">Duree</div>
+            <select id="trd-dur" style="width:100%;font-size:13px;padding:6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary)">
+              <option value="5">5 min</option>
+              <option value="10">10 min</option>
+              <option value="20" selected>20 min</option>
+              <option value="30">30 min</option>
+              <option value="60">1 heure</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button onclick="placeBet('up')" style="padding:10px;font-size:13px;font-weight:500;cursor:pointer;background:var(--color-background-success);color:var(--color-text-success);border:0.5px solid var(--color-border-success);border-radius:var(--border-radius-md)">Hausse &#9650;</button>
+          <button onclick="placeBet('down')" style="padding:10px;font-size:13px;font-weight:500;cursor:pointer;background:var(--color-background-danger);color:var(--color-text-danger);border:0.5px solid var(--color-border-danger);border-radius:var(--border-radius-md)">Baisse &#9660;</button>
+        </div>
+      </div>
+      <div id="trd-bets"></div>
+    </div>
     </div>
     <div class="pn sc" style="max-height:560px">
       <div class="pt">Production par seconde</div>
@@ -129,18 +167,8 @@ body{font-family:Arial,sans-serif;background:#1a1a2e;color:#eee;min-height:100vh
 var CIVS={grecs:{name:"Grecs",icon:"&#9964;"},vikings:{name:"Vikings",icon:"&#9875;"},gaulois:{name:"Gaulois",icon:"&#129683;"},sam:{name:"Samouraïis",icon:"&#9961;"},ninjas:{name:"Ninjas",icon:"&#127769;"}};
 var RN={g:"Guerriers",n:"Nourriture",m:"Matériaux",s:"Savoir",o:"Or",p:"Population"};
 var RC={g:"#f87171",n:"#86efac",m:"#fdba74",s:"#c084fc",o:"#fbbf24",p:"#38bdf8"};
-var ERAS=[
-  {name:"Villages primitifs",unlock:0,color:"#14532d"},
-  {name:"Cités antiques",unlock:20000,color:"#1e3a5f"},
-  {name:"Empires en guerre",unlock:500000,color:"#4a044e"},
-  {name:"Légendes éternelles",unlock:5000000,color:"#431407"}
-];
-var CATS=[
-  {id:"agri",label:"Agriculture",era:1},{id:"mil",label:"Armée",era:1},{id:"armes",label:"Armes",era:2},
-  {id:"marine",label:"Marine",era:2},{id:"eco",label:"Commerce",era:2},{id:"civil",label:"Bâtiments",era:2},
-  {id:"savoir",label:"Savoir",era:2},{id:"plaisir",label:"Loisirs",era:3},{id:"prestige",label:"Prestige",era:3},
-  {id:"divin",label:"Divin",era:3},{id:"legend",label:"Légendaire",era:4}
-];
+var ERAS=[{name:"Villages primitifs",unlock:0,color:"#14532d"},{name:"Cités antiques",unlock:20000,color:"#1e3a5f"},{name:"Empires en guerre",unlock:500000,color:"#4a044e"},{name:"Légendes éternelles",unlock:5000000,color:"#431407"}];
+var CATS=[{id:"agri",label:"Agriculture",era:1},{id:"mil",label:"Armée",era:1},{id:"armes",label:"Armes",era:2},{id:"marine",label:"Marine",era:2},{id:"eco",label:"Commerce",era:2},{id:"civil",label:"Bâtiments",era:2},{id:"savoir",label:"Savoir",era:2},{id:"plaisir",label:"Loisirs",era:3},{id:"prestige",label:"Prestige",era:3},{id:"divin",label:"Divin",era:3},{id:"legend",label:"Légendaire",era:4}];
 var B=[
   {id:"puits",cat:"agri",era:1,ico:"&#128167;",name:"Puits",desc:"+0.02 N/s",cost:{m:900},prod:{n:0.02},cp:{n:0.5}},
   {id:"champ",cat:"agri",era:1,ico:"&#127806;",name:"Champ de blé",desc:"+0.05 N/s",cost:{m:2400,n:600},prod:{n:0.05},cp:{n:1}},
@@ -287,6 +315,134 @@ var CIV_START={
   ninjas:{res:{g:375,n:120,m:0,s:130,o:110,p:0},counts:{plantation:2,ninja_u:1,academie:1,ecole:1,champ:1,merc:1,sold3:9}},
   sam:{res:{g:520,n:230,m:260,s:250,o:460,p:5},counts:{merc:1,atelier:1,oracle:1,prophetie:1,flotte5:1,elevage:1,archer3:1,mclose:1}}
 };
+
+
+
+
+
+
+
+
+
+var MARKET_PRICE=134;
+var MARKET_HISTORY=[100,101,100,102,100,98,98,100,101,103,101,103,106,108,109,108,107,108,107,108,109,112,113,112,111,113,113,112,111,111,111,109,109,112,114,115,116,124,124,126,127,127,110,112,110,108,110,110,112,112,114,114,113,112,111,109,108,108,110,110,111,109,111,111,110,112,115,118,118,116,115,125,126,129,131,131,134,135,133,134];
+var MARKET_BETS=[];
+var MARKET_TIMER=0;
+
+function tickMarket(){
+  var change=(Math.random()-0.48)*0.06;
+  if(Math.random()>0.95) change+=(Math.random()-0.5)*0.2;
+  if(Math.random()<0.04) change-=Math.random()*0.15;
+  MARKET_PRICE=Math.max(10,Math.round(MARKET_PRICE*(1+change)));
+  MARKET_HISTORY.push(MARKET_PRICE);
+  if(MARKET_HISTORY.length>120)MARKET_HISTORY.shift();
+  checkBets();
+  if(S.civ&&S.view==="trade"){
+    var active=document.activeElement;
+    var busy=active&&(active.tagName==="SELECT"||active.tagName==="INPUT");
+    if(!busy)renderTrading();
+  }
+}
+
+function checkBets(){
+  var now=Date.now();
+  var resolved=[];
+  var remaining=[];
+  MARKET_BETS.forEach(function(b){
+    if(now<b.resolveAt){remaining.push(b);return;}
+    var pct=(MARKET_PRICE-b.entryPrice)/b.entryPrice;
+    var win=(b.dir==="up"&&pct>0)||(b.dir==="down"&&pct<0);
+    var gain=win?Math.floor(b.amount*(1+Math.abs(pct)*3)):0;
+    if(win){S.res[b.res]=(S.res[b.res]||0)+gain;S.total+=gain;}
+    resolved.push({win:win,res:b.res,amount:b.amount,gain:gain,pct:Math.round(pct*100)});
+  });
+  MARKET_BETS=remaining;
+  if(resolved.length>0){
+    renderAll();
+    var msgs=resolved.map(function(r){
+      return r.win?("Gain: +"+r.gain+" "+RN[r.res]+" (+"+r.pct+"%)"):("Perte: -"+r.amount+" "+RN[r.res]+" ("+r.pct+"%)");
+    });
+    showNotif(msgs[0]);
+  }
+}
+
+function placeBet(dir){
+  var resEl=document.getElementById("trd-res");
+  var amtEl=document.getElementById("trd-amt");
+  var durEl=document.getElementById("trd-dur");
+  var res=resEl?resEl.value:"o";
+  var amt=parseInt(amtEl?amtEl.value:0)||0;
+  var dur=parseInt(durEl?durEl.value:20)||20;
+  if(amt<=0||amt>(S.res[res]||0)){showNotif("Pas assez de "+RN[res]+" !");return;}
+  S.res[res]-=amt;
+  MARKET_BETS.push({dir:dir,res:res,amount:amt,entryPrice:MARKET_PRICE,resolveAt:Date.now()+dur*60000,dur:dur});
+  showNotif("Pari: "+amt+" "+RN[res]+" sur la "+(dir==="up"?"hausse &#9650;":"baisse &#9660;")+" ("+dur+" min)");
+  renderAll();
+  renderTrading();
+}
+
+function renderTrading(){
+  if(!S.civ)return;
+  var W=500;
+  var H=200;
+  var hist=MARKET_HISTORY;
+  var max=Math.max.apply(null,hist);
+  var min=Math.min.apply(null,hist);
+  var pad=22;
+  function vx(i){return Math.round((i/(hist.length-1||1))*(W-pad*2)+pad);}
+  function vy(v){return max===min?H/2:Math.round(((max-v)/(max-min))*(H-pad*2)+pad);}
+  var pts=hist.map(function(v,i){return vx(i)+","+vy(v);}).join(" ");
+  var lastX=vx(hist.length-1);
+  var lastY=vy(MARKET_PRICE);
+  var color=MARKET_PRICE>=(hist[0]||MARKET_PRICE)?"#4ade80":"#f87171";
+  var pct=Math.round(((MARKET_PRICE-(hist[0]||MARKET_PRICE))/(hist[0]||MARKET_PRICE))*100);
+
+
+
+  // Update chart only
+  var chartWrap=document.getElementById("trd-chart-wrap");
+  if(chartWrap){
+    var cs='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+    cs+='<span style="font-size:14px;font-weight:500;color:var(--color-text-primary)">Indice mondial</span>';
+    cs+='<span style="font-size:18px;font-weight:500;color:'+color+'">'+MARKET_PRICE+' pts '+(pct>=0?"+":"")+pct+'%</span>';
+    cs+='</div>';
+    cs+='<svg width="100%" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="display:block">';
+    cs+='<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="2"/>';
+    cs+='<circle cx="'+lastX+'" cy="'+lastY+'" r="4" fill="'+color+'"/>';
+    var midY=vy(Math.round((max+min)/2));
+    cs+='<line x1="'+pad+'" y1="'+midY+'" x2="'+(W-pad)+'" y2="'+midY+'" stroke="rgba(128,128,128,0.3)" stroke-width="0.5" stroke-dasharray="4"/>';
+    cs+='<text x="2" y="14" fill="#888" font-size="9">'+max+'</text>';
+    cs+='<text x="2" y="'+(H-4)+'" fill="#888" font-size="9">'+min+'</text>';
+    cs+='</svg>';
+    chartWrap.innerHTML=cs;
+  }
+
+  // Update bets panel only
+  var betsEl=document.getElementById("trd-bets");
+  if(betsEl){
+    if(MARKET_BETS.length===0){betsEl.innerHTML='';return;}
+    var now=Date.now();
+    var bh='<div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Paris en cours ('+MARKET_BETS.length+')</div>';
+    bh+='<div style="display:flex;flex-direction:column;gap:5px">';
+    MARKET_BETS.forEach(function(b){
+      var remaining=Math.max(0,Math.ceil((b.resolveAt-now)/60000));
+      var pct2=Math.round(((MARKET_PRICE-b.entryPrice)/b.entryPrice)*100);
+      var winning=(b.dir==="up"&&MARKET_PRICE>b.entryPrice)||(b.dir==="down"&&MARKET_PRICE<b.entryPrice);
+      var gain=winning?Math.floor(b.amount*(1+Math.abs(pct2/100)*3)):0;
+      bh+='<div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-'+(winning?"success":"danger")+');border-radius:var(--border-radius-md);padding:8px 10px">';
+      bh+='<div style="display:flex;justify-content:space-between;font-size:12px">';
+      bh+='<span style="color:var(--color-text-primary)">'+b.amount+' '+RN[b.res]+' '+(b.dir==="up"?"&#9650;":"&#9660;")+'</span>';
+      bh+='<span style="color:var(--color-text-'+(winning?"success":"danger")+');font-weight:500">'+(winning?"+"+gain+" si maintenu":"en perte")+'</span>';
+      bh+='</div>';
+      bh+='<div style="font-size:10px;color:var(--color-text-tertiary);margin-top:2px">'+remaining+' min restantes — entre: '+b.entryPrice+' — actuel: '+MARKET_PRICE+' ('+(pct2>=0?"+":"")+pct2+'%)</div>';
+      bh+='</div>';
+    });
+    bh+='</div>';
+    betsEl.innerHTML=bh;
+  }
+}
+
+setInterval(tickMarket, 10000);
 var S={civ:null,res:{g:0,n:0,m:0,s:0,o:0,p:0},counts:{},total:0,tab:"agri",view:"shop",playTime:0};
 function key(c){return "civ_scout_v2_"+c;}
 function saveGame(){
@@ -361,13 +517,246 @@ function buyBuilding(id){
 }
 function setTab(t){S.tab=t;renderCenter();}
 function setView(v){
-  S.view=v;document.getElementById("vs").className="tab"+(v==="shop"?" active":"");document.getElementById("vo").className="tab"+(v==="owned"?" active":"");renderCenter();
+  S.view=v;
+  document.getElementById("vs").className="tab"+(v==="shop"?" active":"");
+  document.getElementById("vo").className="tab"+(v==="owned"?" active":"");
+  var vt=document.getElementById("vt");if(vt)vt.className="tab"+(v==="trade"?" active":"");
+  var cc=document.getElementById("cc");
+  var tp=document.getElementById("trd-panel");
+  if(v==="trade"){
+    if(cc)cc.style.display="none";
+    if(tp)tp.style.display="block";
+    renderTrading();
+  }else{
+    if(cc)cc.style.display="block";
+    if(tp)tp.style.display="none";
+    renderCenter();
+  }
 }
 function renderAll(){
   var era=getEra();var ed=ERAS[era-1];
   document.getElementById("he").innerHTML='<span style="background:'+ed.color+';padding:3px 10px;border-radius:6px;font-size:11px">'+ed.name+'</span>';
   document.getElementById("ht").textContent=fmt(S.total)+" ressources produites";
-  renderRes();renderCenter();renderRight();
+  renderRes();
+  if(S.view==="trade"){renderTrading();}else{renderCenter();}
+  renderRight();
+}
+function renderRes(){
+  var rates=getRates();var h="";
+  Object.keys(RN).forEach(function(k){h+='<div class="rr"><span style="color:'+RC[k]+'">'+RN[k]+'</span><div style="text-align:right"><div style="font-weight:bold;color:#fff;font-variant-numeric:tabular-nums">'+fmt(S.res[k]||0)+'</div>'+(rates[k]>0?'<div class="rt">+'+fmtR(rates[k])+'/s</div>':'')+'</div></div>';});
+  document.getElementById("rp").innerHTML=h;
+  var owned=B.filter(function(b){return(S.counts[b.id]||0)>0;});
+  var ho=owned.length===0?'<div style="font-size:10px;color:#444;margin-top:4px">Aucun encore</div>':"";
+  owned.forEach(function(b){var id=b.id;ho+='<div class="or" onclick="clickBuilding(&quot;'+id+'&quot;)">'+'<span style="color:#999">'+b.ico+' '+b.name+'</span><span style="color:#60a5fa;font-weight:bold">'+S.counts[b.id]+'</span></div>';});
+  document.getElementById("om").innerHTML=ho;
+}
+function renderCenter(){
+  var era=getEra();var h="";
+  if(S.view==="shop"){
+    h+='<div class="tr">';
+    CATS.forEach(function(c){var av=c.era<=era;h+='<button class="tab'+(S.tab===c.id?" active":"")+'" onclick="'+(av?"setTab('"+c.id+"')":"")+'" style="'+(av?"":"opacity:.4;cursor:not-allowed")+'">'+(av?"":"E"+c.era+" ")+c.label+'</button>';});
+    h+='</div>';
+    B.filter(function(b){return b.cat===S.tab;}).forEach(function(b){
+      var ok=canAfford(b.cost)&&b.era<=era;var cnt=S.counts[b.id]||0;
+      var cs=Object.keys(b.cost).map(function(k){return fmt(b.cost[k])+" "+RN[k];}).join(" | ");
+      h+='<div class="bl'+(ok?"":" lk")+'" onclick="'+(ok?"buyBuilding('"+b.id+"')":"")+'"><div class="bi">'+b.ico+'</div><div><div class="bn">'+b.name+(cnt>0?' <span style="color:#60a5fa;font-size:10px">x'+cnt+'</span>':'')+'</div><div class="bd">'+b.desc+'</div><div class="bc">'+cs+'</div></div></div>';
+    });
+  } else {
+    var owned=B.filter(function(b){return(S.counts[b.id]||0)>0;});
+    if(owned.length===0){h='<div style="text-align:center;color:#555;padding:30px;font-size:13px">Aucun batiment encore</div>';}
+    else{owned.forEach(function(b){h+='<div class="bl" onclick="clickBuilding(&quot;'+b.id+'&quot;)">'+'<div class="bi">'+b.ico+'</div><div class="bn">'+b.name+'<div class="bd">'+b.desc+'</div><div class="bc" style="color:#4ade80">Clic = production instantanee (x'+S.counts[b.id]+')</div></div><div class="bct">'+S.counts[b.id]+'</div></div>';});}
+  }
+  document.getElementById("cc").innerHTML=h;
+}
+function renderRight(){
+  var rates=getRates();var era=getEra();var h="";
+  Object.keys(RN).forEach(function(k){var r=rates[k]||0;h+='<div class="rr"><span style="color:'+RC[k]+'">'+RN[k]+'</span><span style="font-weight:bold;color:'+(r>0?"#4ade80":"#444")+'">'+(r>0?"+"+fmtR(r)+"/s":"&#8212;")+'</span></div>';});
+  document.getElementById("rap").innerHTML=h;
+  var owned=B.filter(function(b){return(S.counts[b.id]||0)>0;});
+  document.getElementById("pp").innerHTML='<div class="rr"><span style="color:#aaa">Batiments</span><span style="color:#fff;font-weight:bold">'+owned.length+'/'+B.length+'</span></div><div class="rr"><span style="color:#aaa">Total produit</span><span style="color:#fff;font-weight:bold">'+fmt(S.total)+'</span></div><div class="rr"><span style="color:#aaa">Prochaine ere</span><span style="color:#fbbf24;font-weight:bold">'+(era<4?fmt(ERAS[era].unlock):"MAX")+'</span></div>';
+  var eraH="";ERAS.forEach(function(e){var u=S.total>=e.unlock;eraH+='<div style="padding:3px 0;font-size:11px;color:'+(u?"#4ade80":"#444")+'">'+(u?"&#9989;":"&#9744;")+" "+e.name+(u?"":" ("+fmt(e.unlock)+")")+'</div>';});
+  document.getElementById("ep").innerHTML=eraH;
+}
+setInterval(function(){var rates=getRates();var added=0;Object.keys(rates).forEach(function(k){S.res[k]=(S.res[k]||0)+rates[k]*0.5;added+=rates[k]*0.5;});S.total+=added;renderAll();},500);
+setInterval(function(){if(S.civ)saveGame();},60000);
+renderCivScreen();
+
+
+
+
+
+
+
+var MARKET_PRICE=134;
+var MARKET_HISTORY=[100,101,100,102,100,98,98,100,101,103,101,103,106,108,109,108,107,108,107,108,109,112,113,112,111,113,113,112,111,111,111,109,109,112,114,115,116,124,124,126,127,127,110,112,110,108,110,110,112,112,114,114,113,112,111,109,108,108,110,110,111,109,111,111,110,112,115,118,118,116,115,125,126,129,131,131,134,135,133,134];
+var MARKET_BETS=[];
+var MARKET_TIMER=0;
+
+function tickMarket(){
+  var change=(Math.random()-0.48)*0.06;
+  if(Math.random()>0.95) change+=(Math.random()-0.5)*0.2;
+  if(Math.random()<0.04) change-=Math.random()*0.15;
+  MARKET_PRICE=Math.max(10,Math.round(MARKET_PRICE*(1+change)));
+  MARKET_HISTORY.push(MARKET_PRICE);
+  if(MARKET_HISTORY.length>120)MARKET_HISTORY.shift();
+  checkBets();
+  if(S.civ&&S.view==="trade")renderTrading();
+}
+
+function checkBets(){
+  var now=Date.now();
+  var resolved=[];
+  var remaining=[];
+  MARKET_BETS.forEach(function(b){
+    if(now<b.resolveAt){remaining.push(b);return;}
+    var pct=(MARKET_PRICE-b.entryPrice)/b.entryPrice;
+    var win=(b.dir==="up"&&pct>0)||(b.dir==="down"&&pct<0);
+    var gain=win?Math.floor(b.amount*(1+Math.abs(pct)*3)):0;
+    if(win){S.res[b.res]=(S.res[b.res]||0)+gain;S.total+=gain;}
+    resolved.push({win:win,res:b.res,amount:b.amount,gain:gain,pct:Math.round(pct*100)});
+  });
+  MARKET_BETS=remaining;
+  if(resolved.length>0){
+    renderAll();
+    var msgs=resolved.map(function(r){
+      return r.win?("Gain: +"+r.gain+" "+RN[r.res]+" (+"+r.pct+"%)"):("Perte: -"+r.amount+" "+RN[r.res]+" ("+r.pct+"%)");
+    });
+    showNotif(msgs[0]);
+  }
+}
+
+function placeBet(dir){
+  var resEl=document.getElementById("trd-res");
+  var amtEl=document.getElementById("trd-amt");
+  var durEl=document.getElementById("trd-dur");
+  var res=resEl?resEl.value:"o";
+  var amt=parseInt(amtEl?amtEl.value:0)||0;
+  var dur=parseInt(durEl?durEl.value:20)||20;
+  if(amt<=0||amt>(S.res[res]||0)){showNotif("Pas assez de "+RN[res]+" !");return;}
+  S.res[res]-=amt;
+  MARKET_BETS.push({dir:dir,res:res,amount:amt,entryPrice:MARKET_PRICE,resolveAt:Date.now()+dur*60000,dur:dur});
+  showNotif("Pari: "+amt+" "+RN[res]+" sur la "+(dir==="up"?"hausse &#9650;":"baisse &#9660;")+" ("+dur+" min)");
+  renderAll();
+  renderTrading();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+setInterval(tickMarket, 10000);
+var S={civ:null,res:{g:0,n:0,m:0,s:0,o:0,p:0},counts:{},total:0,tab:"agri",view:"shop",playTime:0};
+function key(c){return "civ_scout_v2_"+c;}
+function saveGame(){
+  if(!S.civ)return;
+  localStorage.setItem(key(S.civ),JSON.stringify({res:S.res,counts:S.counts,total:S.total,playTime:S.playTime,savedAt:Date.now()}));
+  var el=document.getElementById("si");el.style.display="block";
+  el.textContent="Sauvegarde: "+new Date().toLocaleString("fr-FR");
+  showNotif("Sauvegarde OK !");
+}
+function loadGame(c){
+  var raw=localStorage.getItem(key(c));if(!raw)return false;
+  var d=JSON.parse(raw);S.res=d.res||{g:0,n:0,m:0,s:0,o:0,p:0};S.counts=d.counts||{};S.total=d.total||0;S.playTime=d.playTime||0;return d.savedAt;
+}
+function hasSave(c){return !!localStorage.getItem(key(c));}
+function fmt(n){n=Math.floor(n);if(n>=1e9)return(n/1e9).toFixed(1)+"G";if(n>=1e6)return(n/1e6).toFixed(1)+"M";if(n>=1e3)return(n/1e3).toFixed(1)+"k";return""+n;}
+function fmtR(r){if(r<0.01)return r.toFixed(4);if(r<0.1)return r.toFixed(3);if(r<1)return r.toFixed(2);return r.toFixed(1);}
+function getRates(){var r={g:0,n:0,m:0,s:0,o:0,p:0};B.forEach(function(b){var c=S.counts[b.id]||0;if(c>0&&b.prod)Object.keys(b.prod).forEach(function(k){r[k]+=b.prod[k]*c;});});return r;}
+function canAfford(cost){return Object.keys(cost).every(function(k){return(S.res[k]||0)>=cost[k];});}
+function getEra(){if(S.total>=5000000)return 4;if(S.total>=500000)return 3;if(S.total>=20000)return 2;return 1;}
+function showNotif(msg){var el=document.getElementById("nt");el.textContent=msg;el.style.display="block";clearTimeout(showNotif._t);showNotif._t=setTimeout(function(){el.style.display="none";},2000);}
+function closeModal(id){document.getElementById(id).style.display="none";}
+function openExport(){
+  var d={res:S.res,counts:S.counts,total:S.total,playTime:S.playTime,savedAt:Date.now()};
+  document.getElementById("ec").value=btoa(JSON.stringify(d));
+  document.getElementById("me").style.display="block";
+}
+function copyCode(){var ta=document.getElementById("ec");ta.select();try{document.execCommand("copy");}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(ta.value);showNotif("Code copie !");}
+function openImport(){document.getElementById("mi").style.display="block";}
+function doImport(){
+  try{var d=JSON.parse(atob(document.getElementById("ic").value.trim()));S.res=d.res||{g:0,n:0,m:0,s:0,o:0,p:0};S.counts=d.counts||{};S.total=d.total||0;S.playTime=d.playTime||0;saveGame();closeModal("mi");renderAll();showNotif("Sauvegarde importee !");}
+  catch(e){showNotif("Code invalide !");}
+}
+function step1Reset(){
+  document.getElementById("br1").style.display="none";document.getElementById("br2").style.display="inline-block";
+  clearTimeout(step1Reset._t);step1Reset._t=setTimeout(function(){document.getElementById("br1").style.display="inline-block";document.getElementById("br2").style.display="none";},4000);
+}
+function step2Reset(){
+  localStorage.removeItem(key(S.civ));S.res={g:0,n:0,m:0,s:0,o:0,p:0};S.counts={};S.total=0;S.playTime=0;
+  document.getElementById("br1").style.display="inline-block";document.getElementById("br2").style.display="none";
+  renderAll();showNotif("Partie remise a zero !");
+}
+function renderCivScreen(){
+  var g=document.getElementById("cg");g.innerHTML="";
+  Object.keys(CIVS).forEach(function(k){
+    var v=CIVS[k];var d=document.createElement("div");d.className="cc";
+    var savedAt=null;if(hasSave(k)){try{savedAt=JSON.parse(localStorage.getItem(key(k))).savedAt;}catch(e){}}
+    d.innerHTML="<div style='font-size:36px;margin-bottom:8px'>"+v.icon+"</div><div style='font-size:15px;font-weight:bold;color:#fff'>"+v.name+"</div>"+(savedAt?"<div style='font-size:10px;color:#4ade80;margin-top:4px'>Sauvegarde: "+new Date(savedAt).toLocaleDateString("fr-FR")+"</div>":"");
+    d.onclick=function(){startGame(k);};g.appendChild(d);
+  });
+}
+function startGame(k){
+  S.civ=k;var saved=loadGame(k);
+  document.getElementById("sc").style.display="none";document.getElementById("sg").style.display="block";
+  var c=CIVS[k];
+  document.getElementById("mc").innerHTML=c.icon;document.getElementById("hi").innerHTML=c.icon;document.getElementById("hn").innerHTML=c.name;
+  if(saved){var el=document.getElementById("si");el.style.display="block";el.textContent="Partie chargee du "+new Date(saved).toLocaleString("fr-FR");showNotif("Partie chargee !");}
+  else if(CIV_START[k]){
+    var bonus=CIV_START[k];
+    Object.keys(bonus.res).forEach(function(r){S.res[r]=(S.res[r]||0)+bonus.res[r];S.total+=bonus.res[r];});
+    Object.keys(bonus.counts).forEach(function(b){S.counts[b]=(S.counts[b]||0)+bonus.counts[b];});
+    showNotif("Bonus de depart appliques !");
+  }
+  renderAll();
+}
+function changeCiv(){saveGame();document.getElementById("sg").style.display="none";document.getElementById("sc").style.display="flex";renderCivScreen();}
+function _canClick(){return false;}
+function mainClick(){return;}
+function clickBuilding(id){return;}
+function buyBuilding(id){
+  var b=B.find(function(x){return x.id===id;});if(!b||!canAfford(b.cost)||b.era>getEra()){showNotif(b&&b.era>getEra()?"Ere pas encore debloquee !":"Pas assez de ressources !");return;}
+  Object.keys(b.cost).forEach(function(k){S.res[k]-=b.cost[k];});S.counts[id]=(S.counts[id]||0)+1;showNotif(b.name+" construit !");renderAll();
+}
+function setTab(t){S.tab=t;renderCenter();}
+function setView(v){
+  S.view=v;
+  document.getElementById("vs").className="tab"+(v==="shop"?" active":"");
+  document.getElementById("vo").className="tab"+(v==="owned"?" active":"");
+  var vt=document.getElementById("vt");if(vt)vt.className="tab"+(v==="trade"?" active":"");
+  var cc=document.getElementById("cc");
+  var tp=document.getElementById("trd-panel");
+  if(v==="trade"){
+    if(cc)cc.style.display="none";
+    if(tp)tp.style.display="block";
+    renderTrading();
+  }else{
+    if(cc)cc.style.display="block";
+    if(tp)tp.style.display="none";
+    renderCenter();
+  }
+}
+function renderAll(){
+  var era=getEra();var ed=ERAS[era-1];
+  document.getElementById("he").innerHTML='<span style="background:'+ed.color+';padding:3px 10px;border-radius:6px;font-size:11px">'+ed.name+'</span>';
+  document.getElementById("ht").textContent=fmt(S.total)+" ressources produites";
+  renderRes();
+  if(S.view==="trade"){renderTrading();}else{renderCenter();}
+  renderRight();
 }
 function renderRes(){
   var rates=getRates();var h="";
