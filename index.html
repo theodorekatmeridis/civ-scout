@@ -167,8 +167,8 @@ body{font-family:Arial,sans-serif;background:#1a1a2e;color:#eee;min-height:100vh
 var CIVS={grecs:{name:"Grecs",icon:"&#9964;"},vikings:{name:"Vikings",icon:"&#9875;"},gaulois:{name:"Gaulois",icon:"&#129683;"},sam:{name:"Samouraïis",icon:"&#9961;"},ninjas:{name:"Ninjas",icon:"&#127769;"}};
 var RN={g:"Guerriers",n:"Nourriture",m:"Matériaux",s:"Savoir",o:"Or",p:"Population"};
 var RC={g:"#f87171",n:"#86efac",m:"#fdba74",s:"#c084fc",o:"#fbbf24",p:"#38bdf8"};
-var ERAS=[{name:"Villages primitifs",unlock:0,color:"#14532d"},{name:"Cités antiques",unlock:20000,color:"#1e3a5f"},{name:"Empires en guerre",unlock:500000,color:"#4a044e"},{name:"Légendes éternelles",unlock:5000000,color:"#431407"}];
-var CATS=[{id:"agri",label:"Agriculture",era:1},{id:"mil",label:"Armée",era:1},{id:"armes",label:"Armes",era:2},{id:"marine",label:"Marine",era:2},{id:"eco",label:"Commerce",era:2},{id:"civil",label:"Bâtiments",era:2},{id:"savoir",label:"Savoir",era:2},{id:"plaisir",label:"Loisirs",era:3},{id:"prestige",label:"Prestige",era:3},{id:"divin",label:"Divin",era:3},{id:"legend",label:"Légendaire",era:4}];
+var ERAS=[{name:"Villages primitifs",unlock:0,color:"#14532d"},{name:"Cités antiques",unlock:20000,color:"#1e3a5f"},{name:"Empires en guerre",unlock:500000,color:"#4a044e"},{name:"Légendes éternelles",unlock:5000000,color:"#431407"},{name:"Au-delà des Légendes",unlock:50000000,color:"#0c4a6e"}];
+var CATS=[{id:"agri",label:"Agriculture",era:1},{id:"mil",label:"Armée",era:1},{id:"armes",label:"Armes",era:2},{id:"marine",label:"Marine",era:2},{id:"eco",label:"Commerce",era:2},{id:"civil",label:"Bâtiments",era:2},{id:"savoir",label:"Savoir",era:2},{id:"plaisir",label:"Loisirs",era:3},{id:"prestige",label:"Prestige",era:3},{id:"divin",label:"Divin",era:3},{id:"legend",label:"Légendaire",era:4},{id:"popul",label:"Population",era:2},{id:"indus",label:"Industrie",era:2},{id:"era5",label:"Au-delà",era:5}];
 var B=[
   {id:"puits",cat:"agri",era:1,ico:"&#128167;",name:"Puits",desc:"+0.02 N/s",cost:{m:900},prod:{n:0.02},cp:{n:0.5}},
   {id:"champ",cat:"agri",era:1,ico:"&#127806;",name:"Champ de blé",desc:"+0.05 N/s",cost:{m:2400,n:600},prod:{n:0.05},cp:{n:1}},
@@ -306,7 +306,30 @@ var B=[
   {id:"trone",cat:"legend",era:4,ico:"&#129745;",name:"Trône des civilisations",desc:"+4 O/s +1 tout/s",cost:{o:3000000,g:2250000,s:1875000,m:1500000,n:1125000},prod:{o:4,g:1,n:1,m:1,s:1},cp:{o:50}},
   {id:"apocalypse",cat:"legend",era:4,ico:"&#128293;",name:"Apocalypse divine",desc:"+3 tout/s",cost:{g:3750000,s:3375000,o:3000000,m:2625000,n:2250000},prod:{g:3,n:3,m:3,s:3,o:3},cp:{g:40,s:40}},
   {id:"eldorado",cat:"legend",era:4,ico:"&#128149;",name:"El Dorado",desc:"+5 O/s +1 tout/s",cost:{o:2250000,m:1875000,s:1500000,g:1125000},prod:{o:5,g:1,n:1,m:1,s:1},cp:{o:60}},
-  {id:"ciel",cat:"legend",era:4,ico:"&#127963;",name:"Cité céleste",desc:"+2.5 tout/s",cost:{m:3000000,s:2250000,o:1875000,g:1500000,n:750000},prod:{g:2.5,n:2.5,m:2.5,s:2.5,o:2.5},cp:{g:30,s:30,o:30}}
+  {id:"ciel",cat:"legend",era:4,ico:"&#127963;",name:"Cité céleste",desc:"+2.5 tout/s",cost:{m:3000000,s:2250000,o:1875000,g:1500000,n:750000},prod:{g:2.5,n:2.5,m:2.5,s:2.5,o:2.5},cp:{g:30,s:30,o:30}},
+  // POPULATION (era 2+)
+  {id:"village",    cat:"popul", era:2, ico:"&#127968;", name:"Village",              desc:"+0.05 P/s",             cost:{m:15000,n:6000},                prod:{p:0.05},         cp:{p:1}},
+  {id:"cite",       cat:"popul", era:2, ico:"&#127961;", name:"Cité",             desc:"+0.12 P/s +0.02 O/s",   cost:{m:36000,n:12000,o:6000},        prod:{p:0.12,o:0.02},  cp:{p:2}},
+  {id:"metropole",  cat:"popul", era:3, ico:"&#127970;", name:"Métropole",        desc:"+0.3 P/s +0.05 O/s",    cost:{m:120000,n:45000,o:30000,s:15000},prod:{p:0.3,o:0.05},  cp:{p:4}},
+  {id:"empire_b",   cat:"popul", era:3, ico:"&#127963;", name:"Empire",               desc:"+0.8 P/s +0.1 O/s",     cost:{m:300000,n:120000,o:90000,s:45000},prod:{p:0.8,o:0.1},  cp:{p:10}},
+  {id:"megapole",   cat:"popul", era:4, ico:"&#9961;",   name:"Mégalopole",      desc:"+2 P/s +0.3 O/s",       cost:{m:900000,n:360000,o:270000,s:120000},prod:{p:2,o:0.3},  cp:{p:25}},
+  {id:"continent",  cat:"popul", era:4, ico:"&#127758;", name:"Continent peuplé",desc:"+5 P/s +0.8 O/s",       cost:{m:2250000,n:900000,o:675000,s:300000},prod:{p:5,o:0.8}, cp:{p:60}},
+  {id:"monde",      cat:"popul", era:5, ico:"&#127757;", name:"Monde unifié",    desc:"+15 P/s +2 O/s",        cost:{m:9000000,n:3600000,o:2700000,s:1500000},prod:{p:15,o:2},cp:{p:180}},
+  // INDUSTRIE (era 2+)
+  {id:"carriere",   cat:"indus", era:2, ico:"&#9935;",   name:"Carrière",        desc:"+0.08 M/s",             cost:{m:18000,o:6000},                prod:{m:0.08},         cp:{m:1.2}},
+  {id:"mine",       cat:"indus", era:2, ico:"&#9973;",   name:"Mine",                 desc:"+0.15 M/s",             cost:{m:36000,o:12000,s:6000},        prod:{m:0.15},         cp:{m:2}},
+  {id:"fonderie",   cat:"indus", era:3, ico:"&#128293;", name:"Fonderie",             desc:"+0.35 M/s",             cost:{m:90000,o:36000,s:18000},       prod:{m:0.35},         cp:{m:5}},
+  {id:"manufacture",cat:"indus", era:3, ico:"&#9881;",   name:"Manufacture royale",   desc:"+0.8 M/s +0.1 O/s",    cost:{m:240000,o:90000,s:45000},      prod:{m:0.8,o:0.1},    cp:{m:10,o:1.5}},
+  {id:"complexe",   cat:"indus", era:4, ico:"&#127981;", name:"Complexe industriel",  desc:"+2 M/s +0.3 O/s",      cost:{m:750000,o:300000,s:120000},    prod:{m:2,o:0.3},      cp:{m:25,o:4}},
+  {id:"arsenal_imp",cat:"indus", era:4, ico:"&#128296;", name:"Arsenal impérial",desc:"+5 M/s +0.8 G/s",      cost:{m:2250000,o:900000,s:300000,g:450000},prod:{m:5,g:0.8}, cp:{m:60,g:10}},
+  {id:"forge_titan",cat:"indus", era:5, ico:"&#128293;", name:"Forge des Titans",     desc:"+15 M/s +2 G/s",        cost:{m:9000000,o:3600000,s:900000,g:1800000},prod:{m:15,g:2},cp:{m:180,g:25}},
+  // ERA 5 - AU DELA DES LEGENDES
+  {id:"galaxie",    cat:"era5",  era:5, ico:"&#11088;",  name:"Galaxie conquérie",desc:"+5 tout/s",            cost:{g:15000000,n:12000000,m:10000000,s:8000000,o:6000000},prod:{g:5,n:5,m:5,s:5,o:5},cp:{g:60,s:60}},
+  {id:"temps",      cat:"era5",  era:5, ico:"&#8987;",   name:"Maître du Temps", desc:"+10 S/s +5 tout/s",    cost:{s:20000000,o:15000000,g:12000000},prod:{s:10,g:5,n:5,m:5,o:5},cp:{s:120,g:60}},
+  {id:"cosmos",     cat:"era5",  era:5, ico:"&#127775;", name:"Seigneur du Cosmos",   desc:"+10 G/s +10 O/s",      cost:{g:25000000,o:20000000,s:15000000,m:10000000},prod:{g:10,o:10},cp:{g:120,o:120}},
+  {id:"immortalite",cat:"era5",  era:5, ico:"&#9889;",   name:"Immortalité",     desc:"+20 tout/s",           cost:{g:40000000,n:35000000,m:30000000,s:25000000,o:20000000},prod:{g:20,n:20,m:20,s:20,o:20},cp:{g:250,s:250}},
+  {id:"omniscience",cat:"era5",  era:5, ico:"&#128300;", name:"Omniscience",          desc:"+30 S/s +10 tout/s",   cost:{s:50000000,o:40000000,g:30000000,m:20000000},prod:{s:30,g:10,n:10,m:10,o:10},cp:{s:400}},
+  {id:"creation",   cat:"era5",  era:5, ico:"&#127744;", name:"Pouvoir de Création",desc:"+50 tout/s",        cost:{g:100000000,n:80000000,m:60000000,s:50000000,o:40000000},prod:{g:50,n:50,m:50,s:50,o:50},cp:{g:600,s:600,o:600}},
 ];
 var CIV_START={
   gaulois:{res:{g:230,n:120,m:0,s:50,o:210,p:0},counts:{sold3:8,quartier_p:1,serre:1,merc:2,champ:1}},
@@ -330,10 +353,19 @@ var MARKET_BETS=[];
 var MARKET_TIMER=0;
 
 function tickMarket(){
-  var change=(Math.random()-0.48)*0.06;
-  if(Math.random()>0.95) change+=(Math.random()-0.5)*0.2;
-  if(Math.random()<0.04) change-=Math.random()*0.15;
-  MARKET_PRICE=Math.max(10,Math.round(MARKET_PRICE*(1+change)));
+  var roll=Math.random();
+  var change;
+  if(roll<0.05){
+    change=-(0.15+Math.random()*0.35);
+  } else if(roll<0.10){
+    change=0.15+Math.random()*0.35;
+  } else if(roll<0.25){
+    change=(Math.random()-0.5)*0.18;
+  } else {
+    change=(Math.random()-0.48)*0.07;
+  }
+  if(Math.random()<0.08) change*=-1;
+  MARKET_PRICE=Math.max(5,Math.round(MARKET_PRICE*(1+change)));
   MARKET_HISTORY.push(MARKET_PRICE);
   if(MARKET_HISTORY.length>120)MARKET_HISTORY.shift();
   checkBets();
@@ -443,6 +475,92 @@ function renderTrading(){
 }
 
 setInterval(tickMarket, 10000);
+
+var EVENTS=[
+  {id:"secheresse",  icon:"&#9728;",   title:"Sécheresse !",          desc:"Un soleil de plomb brûle vos récoltes. La Nourriture s’évapore chaque seconde.",  drain:{n:2},   cost:{o:8000,m:4000},  duration:600},
+  {id:"maladie",     icon:"&#128567;",  title:"Epidemie de peste !",        desc:"Une maladie ravage vos habitants. Guerriers et Population fuient ou périssent.",                drain:{g:1.5,p:0.5}, cost:{s:6000,o:6000},  duration:480},
+  {id:"revolution",  icon:"&#9994;",   title:"Révolution populaire !", desc:"Le peuple se soulève ! Vos coffres sont pillés et vos soldats désertent.",             drain:{o:3,g:1},cost:{g:10000,n:5000}, duration:540},
+  {id:"invasion",    icon:"&#9876;",   title:"Invasion barbare !",          desc:"Des hordes envahissent vos terres. Vos guerriers tombent un à un.",                             drain:{g:3,m:1},cost:{g:15000,o:8000}, duration:420},
+  {id:"famine",      icon:"&#127836;", title:"Grande Famine !",             desc:"Les greniers sont vides. La population souffre et votre armée s’affaiblit.",               drain:{n:3,g:0.5},cost:{n:12000,o:5000},duration:600},
+  {id:"tremblement", icon:"&#127755;", title:"Tremblement de terre !",      desc:"La terre gronde et vos bâtiments s’effondrent. Les matériaux disparaissent.",         drain:{m:3,o:1},cost:{m:12000,s:4000}, duration:480},
+  {id:"corruption",  icon:"&#128181;", title:"Corruption généralisée !",desc:"Des officiers corrompus vident vos coffres nuit et jour.",                               drain:{o:4},   cost:{s:10000,g:6000}, duration:540},
+  {id:"exil",        icon:"&#128661;", title:"Exode massif !",              desc:"Des milliers d’habitants fuient vers d’autres terres. Votre population s’écroule.",drain:{p:1,n:1},cost:{o:8000,n:6000},  duration:480},
+  {id:"hiver",       icon:"&#10052;",  title:"Hiver glacial !",             desc:"Un froid polaire paralyse tout. Les récoltes gelènt et les soldats se démoralisent.", drain:{n:2,g:0.5},cost:{m:8000,o:6000}, duration:600},
+  {id:"piraterie",   icon:"&#9875;",   title:"Pirates en mer !",            desc:"Les pirates pillent vos routes commerciales. Votre or disparaît dans l’océan.",       drain:{o:3,m:0.5},cost:{g:10000,m:6000},duration:480},
+  {id:"trahison",    icon:"&#128091;", title:"Trahison du conseil !",       desc:"Vos conseillers ont vendu vos secrets. Le Savoir se perd et l’or s’évapore.",        drain:{s:2,o:2},cost:{g:8000,s:8000},  duration:420},
+  {id:"inondation",  icon:"&#127754;", title:"Inondations catastrophiques !",desc:"Les fleuves débordent et ravagent vos terres agricoles et vos entrepôts.",                   drain:{n:2,m:2},cost:{m:10000,o:7000}, duration:540},
+];
+
+var ACTIVE_EVENT=null;
+var LAST_EVENT_TIME=Date.now()+(Math.random()*1200000);
+
+function triggerRandomEvent(){
+  if(ACTIVE_EVENT)return;
+  if(!S.civ)return;
+  var e=EVENTS[Math.floor(Math.random()*EVENTS.length)];
+  ACTIVE_EVENT={
+    id:e.id,icon:e.icon,title:e.title,desc:e.desc,
+    drain:e.drain,cost:e.cost,duration:e.duration,
+    startedAt:Date.now()
+  };
+  showEventModal();
+}
+
+function showEventModal(){
+  if(!ACTIVE_EVENT)return;
+  var e=ACTIVE_EVENT;
+  document.getElementById("evt-icon").innerHTML=e.icon;
+  document.getElementById("evt-title").textContent=e.title;
+  document.getElementById("evt-desc").textContent=e.desc;
+  var drainStr=Object.keys(e.drain).map(function(k){return "-"+e.drain[k]+"/s "+RN[k];}).join("  ");
+  document.getElementById("evt-drain").innerHTML="&#128308; Dégâts : "+drainStr;
+  var costStr=Object.keys(e.cost).map(function(k){return e.cost[k]+" "+RN[k];}).join(" + ");
+  document.getElementById("evt-cost").innerHTML="&#128178; Coût pour résoudre : "+costStr;
+  document.getElementById("evt-modal").style.display="flex";
+}
+
+function payEvent(){
+  if(!ACTIVE_EVENT)return;
+  var e=ACTIVE_EVENT;
+  var canPay=Object.keys(e.cost).every(function(k){return(S.res[k]||0)>=e.cost[k];});
+  if(!canPay){
+    showNotif("Pas assez de ressources pour payer !");
+    return;
+  }
+  Object.keys(e.cost).forEach(function(k){S.res[k]-=e.cost[k];});
+  ACTIVE_EVENT=null;
+  LAST_EVENT_TIME=Date.now()+(2700000+Math.random()*1800000);
+  document.getElementById("evt-modal").style.display="none";
+  showNotif("Crise résolue ! Prochain événement dans ~1h");
+  renderAll();
+}
+
+function ignoreEvent(){
+  document.getElementById("evt-modal").style.display="none";
+}
+
+function applyEventDrain(){
+  if(!ACTIVE_EVENT)return;
+  var e=ACTIVE_EVENT;
+  Object.keys(e.drain).forEach(function(k){
+    S.res[k]=Math.max(0,(S.res[k]||0)-e.drain[k]*0.5);
+  });
+  var elapsed=(Date.now()-e.startedAt)/1000;
+  if(elapsed>e.duration){
+    ACTIVE_EVENT=null;
+    LAST_EVENT_TIME=Date.now()+(2700000+Math.random()*1800000);
+    showNotif("La crise s’est enfin dissipée...");
+  }
+}
+
+setInterval(function(){
+  if(!S.civ)return;
+  applyEventDrain();
+  if(!ACTIVE_EVENT&&Date.now()>LAST_EVENT_TIME){
+    triggerRandomEvent();
+  }
+},2000);
+
 var S={civ:null,res:{g:0,n:0,m:0,s:0,o:0,p:0},counts:{},total:0,tab:"agri",view:"shop",playTime:0};
 function key(c){return "civ_scout_v2_"+c;}
 function saveGame(){
@@ -461,7 +579,7 @@ function fmt(n){n=Math.floor(n);if(n>=1e9)return(n/1e9).toFixed(1)+"G";if(n>=1e6
 function fmtR(r){if(r<0.01)return r.toFixed(4);if(r<0.1)return r.toFixed(3);if(r<1)return r.toFixed(2);return r.toFixed(1);}
 function getRates(){var r={g:0,n:0,m:0,s:0,o:0,p:0};B.forEach(function(b){var c=S.counts[b.id]||0;if(c>0&&b.prod)Object.keys(b.prod).forEach(function(k){r[k]+=b.prod[k]*c;});});return r;}
 function canAfford(cost){return Object.keys(cost).every(function(k){return(S.res[k]||0)>=cost[k];});}
-function getEra(){if(S.total>=5000000)return 4;if(S.total>=500000)return 3;if(S.total>=20000)return 2;return 1;}
+function getEra(){if(S.total>=50000000)return 5;if(S.total>=5000000)return 4;if(S.total>=500000)return 3;if(S.total>=20000)return 2;return 1;}
 function showNotif(msg){var el=document.getElementById("nt");el.textContent=msg;el.style.display="block";clearTimeout(showNotif._t);showNotif._t=setTimeout(function(){el.style.display="none";},2000);}
 function closeModal(id){document.getElementById(id).style.display="none";}
 function openExport(){
@@ -573,7 +691,7 @@ function renderRight(){
   Object.keys(RN).forEach(function(k){var r=rates[k]||0;h+='<div class="rr"><span style="color:'+RC[k]+'">'+RN[k]+'</span><span style="font-weight:bold;color:'+(r>0?"#4ade80":"#444")+'">'+(r>0?"+"+fmtR(r)+"/s":"&#8212;")+'</span></div>';});
   document.getElementById("rap").innerHTML=h;
   var owned=B.filter(function(b){return(S.counts[b.id]||0)>0;});
-  document.getElementById("pp").innerHTML='<div class="rr"><span style="color:#aaa">Batiments</span><span style="color:#fff;font-weight:bold">'+owned.length+'/'+B.length+'</span></div><div class="rr"><span style="color:#aaa">Total produit</span><span style="color:#fff;font-weight:bold">'+fmt(S.total)+'</span></div><div class="rr"><span style="color:#aaa">Prochaine ere</span><span style="color:#fbbf24;font-weight:bold">'+(era<4?fmt(ERAS[era].unlock):"MAX")+'</span></div>';
+  document.getElementById("pp").innerHTML='<div class="rr"><span style="color:#aaa">Batiments</span><span style="color:#fff;font-weight:bold">'+owned.length+'/'+B.length+'</span></div><div class="rr"><span style="color:#aaa">Total produit</span><span style="color:#fff;font-weight:bold">'+fmt(S.total)+'</span></div><div class="rr"><span style="color:#aaa">Prochaine ere</span><span style="color:#fbbf24;font-weight:bold">'+(era<5?fmt(ERAS[era].unlock):"MAX")+'</span></div>';
   var eraH="";ERAS.forEach(function(e){var u=S.total>=e.unlock;eraH+='<div style="padding:3px 0;font-size:11px;color:'+(u?"#4ade80":"#444")+'">'+(u?"&#9989;":"&#9744;")+" "+e.name+(u?"":" ("+fmt(e.unlock)+")")+'</div>';});
   document.getElementById("ep").innerHTML=eraH;
 }
@@ -660,6 +778,92 @@ function placeBet(dir){
 
 
 setInterval(tickMarket, 10000);
+
+var EVENTS=[
+  {id:"secheresse",  icon:"&#9728;",   title:"Sécheresse !",          desc:"Un soleil de plomb brûle vos récoltes. La Nourriture s’évapore chaque seconde.",  drain:{n:2},   cost:{o:8000,m:4000},  duration:600},
+  {id:"maladie",     icon:"&#128567;",  title:"Epidemie de peste !",        desc:"Une maladie ravage vos habitants. Guerriers et Population fuient ou périssent.",                drain:{g:1.5,p:0.5}, cost:{s:6000,o:6000},  duration:480},
+  {id:"revolution",  icon:"&#9994;",   title:"Révolution populaire !", desc:"Le peuple se soulève ! Vos coffres sont pillés et vos soldats désertent.",             drain:{o:3,g:1},cost:{g:10000,n:5000}, duration:540},
+  {id:"invasion",    icon:"&#9876;",   title:"Invasion barbare !",          desc:"Des hordes envahissent vos terres. Vos guerriers tombent un à un.",                             drain:{g:3,m:1},cost:{g:15000,o:8000}, duration:420},
+  {id:"famine",      icon:"&#127836;", title:"Grande Famine !",             desc:"Les greniers sont vides. La population souffre et votre armée s’affaiblit.",               drain:{n:3,g:0.5},cost:{n:12000,o:5000},duration:600},
+  {id:"tremblement", icon:"&#127755;", title:"Tremblement de terre !",      desc:"La terre gronde et vos bâtiments s’effondrent. Les matériaux disparaissent.",         drain:{m:3,o:1},cost:{m:12000,s:4000}, duration:480},
+  {id:"corruption",  icon:"&#128181;", title:"Corruption généralisée !",desc:"Des officiers corrompus vident vos coffres nuit et jour.",                               drain:{o:4},   cost:{s:10000,g:6000}, duration:540},
+  {id:"exil",        icon:"&#128661;", title:"Exode massif !",              desc:"Des milliers d’habitants fuient vers d’autres terres. Votre population s’écroule.",drain:{p:1,n:1},cost:{o:8000,n:6000},  duration:480},
+  {id:"hiver",       icon:"&#10052;",  title:"Hiver glacial !",             desc:"Un froid polaire paralyse tout. Les récoltes gelènt et les soldats se démoralisent.", drain:{n:2,g:0.5},cost:{m:8000,o:6000}, duration:600},
+  {id:"piraterie",   icon:"&#9875;",   title:"Pirates en mer !",            desc:"Les pirates pillent vos routes commerciales. Votre or disparaît dans l’océan.",       drain:{o:3,m:0.5},cost:{g:10000,m:6000},duration:480},
+  {id:"trahison",    icon:"&#128091;", title:"Trahison du conseil !",       desc:"Vos conseillers ont vendu vos secrets. Le Savoir se perd et l’or s’évapore.",        drain:{s:2,o:2},cost:{g:8000,s:8000},  duration:420},
+  {id:"inondation",  icon:"&#127754;", title:"Inondations catastrophiques !",desc:"Les fleuves débordent et ravagent vos terres agricoles et vos entrepôts.",                   drain:{n:2,m:2},cost:{m:10000,o:7000}, duration:540},
+];
+
+var ACTIVE_EVENT=null;
+var LAST_EVENT_TIME=Date.now()+(Math.random()*1200000);
+
+function triggerRandomEvent(){
+  if(ACTIVE_EVENT)return;
+  if(!S.civ)return;
+  var e=EVENTS[Math.floor(Math.random()*EVENTS.length)];
+  ACTIVE_EVENT={
+    id:e.id,icon:e.icon,title:e.title,desc:e.desc,
+    drain:e.drain,cost:e.cost,duration:e.duration,
+    startedAt:Date.now()
+  };
+  showEventModal();
+}
+
+function showEventModal(){
+  if(!ACTIVE_EVENT)return;
+  var e=ACTIVE_EVENT;
+  document.getElementById("evt-icon").innerHTML=e.icon;
+  document.getElementById("evt-title").textContent=e.title;
+  document.getElementById("evt-desc").textContent=e.desc;
+  var drainStr=Object.keys(e.drain).map(function(k){return "-"+e.drain[k]+"/s "+RN[k];}).join("  ");
+  document.getElementById("evt-drain").innerHTML="&#128308; Dégâts : "+drainStr;
+  var costStr=Object.keys(e.cost).map(function(k){return e.cost[k]+" "+RN[k];}).join(" + ");
+  document.getElementById("evt-cost").innerHTML="&#128178; Coût pour résoudre : "+costStr;
+  document.getElementById("evt-modal").style.display="flex";
+}
+
+function payEvent(){
+  if(!ACTIVE_EVENT)return;
+  var e=ACTIVE_EVENT;
+  var canPay=Object.keys(e.cost).every(function(k){return(S.res[k]||0)>=e.cost[k];});
+  if(!canPay){
+    showNotif("Pas assez de ressources pour payer !");
+    return;
+  }
+  Object.keys(e.cost).forEach(function(k){S.res[k]-=e.cost[k];});
+  ACTIVE_EVENT=null;
+  LAST_EVENT_TIME=Date.now()+(2700000+Math.random()*1800000);
+  document.getElementById("evt-modal").style.display="none";
+  showNotif("Crise résolue ! Prochain événement dans ~1h");
+  renderAll();
+}
+
+function ignoreEvent(){
+  document.getElementById("evt-modal").style.display="none";
+}
+
+function applyEventDrain(){
+  if(!ACTIVE_EVENT)return;
+  var e=ACTIVE_EVENT;
+  Object.keys(e.drain).forEach(function(k){
+    S.res[k]=Math.max(0,(S.res[k]||0)-e.drain[k]*0.5);
+  });
+  var elapsed=(Date.now()-e.startedAt)/1000;
+  if(elapsed>e.duration){
+    ACTIVE_EVENT=null;
+    LAST_EVENT_TIME=Date.now()+(2700000+Math.random()*1800000);
+    showNotif("La crise s’est enfin dissipée...");
+  }
+}
+
+setInterval(function(){
+  if(!S.civ)return;
+  applyEventDrain();
+  if(!ACTIVE_EVENT&&Date.now()>LAST_EVENT_TIME){
+    triggerRandomEvent();
+  }
+},2000);
+
 var S={civ:null,res:{g:0,n:0,m:0,s:0,o:0,p:0},counts:{},total:0,tab:"agri",view:"shop",playTime:0};
 function key(c){return "civ_scout_v2_"+c;}
 function saveGame(){
@@ -678,7 +882,7 @@ function fmt(n){n=Math.floor(n);if(n>=1e9)return(n/1e9).toFixed(1)+"G";if(n>=1e6
 function fmtR(r){if(r<0.01)return r.toFixed(4);if(r<0.1)return r.toFixed(3);if(r<1)return r.toFixed(2);return r.toFixed(1);}
 function getRates(){var r={g:0,n:0,m:0,s:0,o:0,p:0};B.forEach(function(b){var c=S.counts[b.id]||0;if(c>0&&b.prod)Object.keys(b.prod).forEach(function(k){r[k]+=b.prod[k]*c;});});return r;}
 function canAfford(cost){return Object.keys(cost).every(function(k){return(S.res[k]||0)>=cost[k];});}
-function getEra(){if(S.total>=5000000)return 4;if(S.total>=500000)return 3;if(S.total>=20000)return 2;return 1;}
+function getEra(){if(S.total>=50000000)return 5;if(S.total>=5000000)return 4;if(S.total>=500000)return 3;if(S.total>=20000)return 2;return 1;}
 function showNotif(msg){var el=document.getElementById("nt");el.textContent=msg;el.style.display="block";clearTimeout(showNotif._t);showNotif._t=setTimeout(function(){el.style.display="none";},2000);}
 function closeModal(id){document.getElementById(id).style.display="none";}
 function openExport(){
@@ -790,7 +994,7 @@ function renderRight(){
   Object.keys(RN).forEach(function(k){var r=rates[k]||0;h+='<div class="rr"><span style="color:'+RC[k]+'">'+RN[k]+'</span><span style="font-weight:bold;color:'+(r>0?"#4ade80":"#444")+'">'+(r>0?"+"+fmtR(r)+"/s":"&#8212;")+'</span></div>';});
   document.getElementById("rap").innerHTML=h;
   var owned=B.filter(function(b){return(S.counts[b.id]||0)>0;});
-  document.getElementById("pp").innerHTML='<div class="rr"><span style="color:#aaa">Batiments</span><span style="color:#fff;font-weight:bold">'+owned.length+'/'+B.length+'</span></div><div class="rr"><span style="color:#aaa">Total produit</span><span style="color:#fff;font-weight:bold">'+fmt(S.total)+'</span></div><div class="rr"><span style="color:#aaa">Prochaine ere</span><span style="color:#fbbf24;font-weight:bold">'+(era<4?fmt(ERAS[era].unlock):"MAX")+'</span></div>';
+  document.getElementById("pp").innerHTML='<div class="rr"><span style="color:#aaa">Batiments</span><span style="color:#fff;font-weight:bold">'+owned.length+'/'+B.length+'</span></div><div class="rr"><span style="color:#aaa">Total produit</span><span style="color:#fff;font-weight:bold">'+fmt(S.total)+'</span></div><div class="rr"><span style="color:#aaa">Prochaine ere</span><span style="color:#fbbf24;font-weight:bold">'+(era<5?fmt(ERAS[era].unlock):"MAX")+'</span></div>';
   var eraH="";ERAS.forEach(function(e){var u=S.total>=e.unlock;eraH+='<div style="padding:3px 0;font-size:11px;color:'+(u?"#4ade80":"#444")+'">'+(u?"&#9989;":"&#9744;")+" "+e.name+(u?"":" ("+fmt(e.unlock)+")")+'</div>';});
   document.getElementById("ep").innerHTML=eraH;
 }
@@ -798,5 +1002,18 @@ setInterval(function(){var rates=getRates();var added=0;Object.keys(rates).forEa
 setInterval(function(){if(S.civ)saveGame();},60000);
 renderCivScreen();
 </script>
+<div id="evt-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#1a0a0a;border:2px solid #ef4444;border-radius:var(--border-radius-lg);padding:24px;max-width:420px;width:90%;text-align:center">
+    <div id="evt-icon" style="font-size:52px;margin-bottom:12px"></div>
+    <div id="evt-title" style="font-size:18px;font-weight:500;color:#fca5a5;margin-bottom:8px"></div>
+    <div id="evt-desc" style="font-size:13px;color:#aaa;margin-bottom:16px;line-height:1.5"></div>
+    <div id="evt-drain" style="font-size:12px;color:#f87171;margin-bottom:16px;font-weight:500"></div>
+    <div id="evt-cost" style="font-size:13px;color:#fbbf24;margin-bottom:16px"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="payEvent()" id="evt-pay-btn" style="flex:1;padding:12px;font-size:13px;font-weight:500;cursor:pointer;background:#7f1d1d;color:#fca5a5;border:1px solid #ef4444;border-radius:var(--border-radius-md)">Payer pour arreter</button>
+      <button onclick="ignoreEvent()" style="flex:1;padding:12px;font-size:13px;cursor:pointer;background:#1a1a2e;color:#666;border:1px solid #333;border-radius:var(--border-radius-md)">Ignorer (subir)</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
